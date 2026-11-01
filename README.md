@@ -2,7 +2,11 @@
 
 Simulador da máquina Enigma (M3 e M4) escrito em Python, com motor de cifragem fiel, API em Flask, interface web em JavaScript puro e um módulo de criptoanálise por força bruta sobre posições iniciais.
 
-![Tela principal](docs/screenshot-machine.png)
+**Configuração da Máquina**
+![Tela de configuração da máquina Enigma](docs/screenshot-machine.png)
+
+**Criptoanálise**
+![Tela de criptoanálise](docs/screenshot-criptoanalise.png)
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)
 ![Flask](https://img.shields.io/badge/Flask-API-000000?logo=flask&logoColor=white)
@@ -21,7 +25,6 @@ Sobre esse motor há uma API Flask, uma interface web e um módulo de criptoaná
 ## Features
 
 **Implementado**
-
 - Motor Enigma M3 e M4 com rotores I–VIII, Beta e Gamma.
 - Duplo avanço dos rotores, com entalhes simples e duplos (VI, VII, VIII).
 - Refletores B e C (M3) e B-Thin / C-Thin (M4), com validação de simetria.
@@ -38,12 +41,11 @@ Sobre esse motor há uma API Flask, uma interface web e um módulo de criptoaná
 - Quatro missões históricas com dicas progressivas, pontuação por modo de jogo e galeria liberada após a conclusão.
 - 234 testes com pytest cobrindo motor, rotores, refletor, plugboard, CLI, API, criptoanálise e missões.
 
-**Em desenvolvimento**
-
-- Conclusão de missão pela interface: a rota de verificação responde 500 por inconsistência de importação no `api.py`.
-- Galeria histórica: os caminhos das imagens em `desafios.py` não coincidem com a pasta real do projeto.
-- Formulário de criptoanálise ainda não expõe rotores, anéis, refletor e plugboard.
-- Telas "Documentação" e "Ontem & hoje" têm conteúdo estático no HTML.
+**Em desenvolvimento (Roadmap)**
+- Correção da rota de verificação de missões na interface (atualmente retorna 500 por inconsistência de importação).
+- Ajuste dos caminhos das imagens na galeria histórica.
+- Expansão do formulário de criptoanálise na interface para incluir rotores, anéis, refletor e plugboard.
+- Implementação de conteúdo dinâmico nas telas "Documentação" e "Ontem & hoje".
 
 ## Stack
 
@@ -55,7 +57,6 @@ Sobre esse motor há uma API Flask, uma interface web e um módulo de criptoaná
 
 ## Arquitetura
 
-
 **Frontend** — apenas apresentação e orquestração de chamadas. Não implementa cifra.
 **API** — traduz JSON em configuração validada, trata erros como HTTP 400/500 e serializa a saída.
 **Motor** — cifra pura, sem dependência de Flask. É a mesma classe usada pela CLI, pela API e pela criptoanálise.
@@ -65,52 +66,69 @@ Sobre esse motor há uma API Flask, uma interface web e um módulo de criptoaná
 
 1. Clone o repositório e entre na pasta:
 
-git clone https://github.com/seu-usuario/enigma-machine.git
-cd enigma-machine
+```bash
+git clone https://github.com/emanoelpr/maquina-enigma-flask.git
+cd maquina-enigma-flask
+```
 
 2. Crie e ative o ambiente virtual:
-# Windows (PowerShell)
+
+```bash
+# Windows (Prompt de Comando)
 python -m venv .venv
-.venv\Scripts\Activate.ps1
+.venv\Scripts\activate
 
 # Linux / macOS
 python3 -m venv .venv
 source .venv/bin/activate
+```
 
 3. Instale as dependências:
+
+```bash
 pip install -r requirements.txt
+```
 
 4. Rode a API:
-python api.py
 
-- O servidor fica em http://127.0.0.1:5000. Confira com curl http://127.0.0.1:5000/api/health.
+```bash
+python api.py
+```
+
+O servidor fica em `http://127.0.0.1:5000`. Confira com `curl http://127.0.0.1:5000/api/health`.
 
 5. Abra a interface. Duas opções:
+
+```bash
 # direto no navegador
-open enigma_frontend/index.html        # macOS
 start enigma_frontend\index.html       # Windows
-xdg-open enigma_frontend/index.html    # Linux
+open enigma_frontend/index.html        # macOS
 
 # ou por um servidor local, se preferir
 python -m http.server 8000 --directory enigma_frontend
 # acesse http://localhost:8000
+```
 
-- O app.js aponta para http://127.0.0.1:5000, então a API precisa estar rodando.
+*Nota: O `app.js` aponta para `http://127.0.0.1:5000`, então a API precisa estar rodando.*
 
-## Requirements:
-Flask>=3.0
-flask-cors>=4.0
-pytest>=8.0
+## Requirements
 
-## Como testar:
+- Flask>=3.0
+- flask-cors>=4.0
+- pytest>=8.0
+
+## Como testar
+
+```bash
 python -m pytest testes -q
+```
 
-- A suíte tem 234 testes coletados (197 funções, ampliadas por parametrização), em 19 arquivos
-- Estado atual: 229 passam e 5 falham — as falhas estão concentradas em test_desafios.py e
-- test_fase21.py, ligadas à conclusão de missões e ao caminho das imagens da galeria.
+- A suíte tem 234 testes coletados (197 funções, ampliadas por parametrização), em 19 arquivos.
+- Estado atual: **229 passam com sucesso**. Os 5 testes restantes estão concentrados em `test_desafios.py` e `test_fase21.py` (ligados à conclusão de missões e ao caminho das imagens da galeria, conforme itens do roadmap).
 
 ## Estrutura do Projeto
 
+```text
 enigma_machine/
 ├── enigma.py                  # máquina M3/M4: avanço, cifra, rastreamento
 ├── rotor.py                   # fiação, entalhes, anel e posição
@@ -135,15 +153,21 @@ enigma_machine/
 │   └── js/app.js              # navegação e chamadas à API
 ├── galeria/                   # fotografias históricas
 └── testes/                    # 19 arquivos de teste
+```
 
 ## Exemplos de uso da API
 
-- Health check:
+**Health check:**
+
+```bash
 curl http://127.0.0.1:5000/api/health
-{"status": "ok", "mensagem": "API Enigma funcionando."}
+```
 
+Retorno: `{"status": "ok", "mensagem": "API Enigma funcionando."}`
 
-## Cifrar uma mensagem (M3)
+**Cifrar uma mensagem (M3):**
+
+```bash
 curl -X POST http://127.0.0.1:5000/api/cifrar \
   -H "Content-Type: application/json" \
   -d '{
@@ -155,23 +179,33 @@ curl -X POST http://127.0.0.1:5000/api/cifrar \
     "refletor": "B",
     "plugboard": "AV BS CG"
   }'
+```
 
+Retorno:
+
+```json
 {
   "modelo": "M3",
   "mensagem_original": "HELLOWORLD",
   "resultado": "ILSDVVMTVZ",
   "quantidade_caracteres": 10
 }
+```
 
+*A mesma configuração decifra: enviar `ILSDVVMTVZ` devolve `HELLOWORLD`. Isso vem do refletor, que torna a cifra recíproca.*
 
-- A mesma configuração decifra: enviar ILSDVVMTVZ devolve HELLOWORLD. Isso vem do refletor, que torna a cifra recíproca.
+**Percurso de uma letra:**
 
-## Percurso de uma letra
+```bash
 curl -X POST http://127.0.0.1:5000/api/percurso \
   -H "Content-Type: application/json" \
   -d '{"modelo":"M3","letra":"H","rotores":["I","II","III"],
        "posicoes":["A","A","A"],"aneis":[1,1,1],"refletor":"B","plugboard":""}'
+```
 
+Retorno (resumido):
+
+```json
 {
   "letra_entrada": "H",
   "letra_saida": "I",
@@ -182,64 +216,45 @@ curl -X POST http://127.0.0.1:5000/api/percurso \
     {"componente": "Refletor B", "antes": "X", "depois": "J"}
   ]
 }
+```
 
-
-- A resposta traz o caminho completo; o trecho acima está resumido. posicoes_finais permite enviar a próxima letra continuando exatamente de onde a anterior parou.
+*A resposta traz o caminho completo; o trecho acima está resumido. `posicoes_finais` permite enviar a próxima letra continuando exatamente de onde a anterior parou.*
 
 ## Demais rotas
-Método	    Rota	                              Função
-POST	      /api/cifrar	                        Cifra ou decifra um texto
-POST	      /api/percurso	                      Percurso elétrico de uma letra
-POST	      /api/criptoanalise	                Busca síncrona de posições
-POST	      /api/criptoanalise/tarefas	        Inicia busca em segundo plano
-GET	        /api/criptoanalise/tarefas/<id>	    Progresso real da busca
-POST	      /api/criptoanalise/tarefas/<id>/cancelar	Cancela a busca
-GET	        /api/desafios	                      Catálogo público de missões
-GET       	/api/desafios/<id>	                Detalhe da missão
-POST	      /api/desafios/<id>/dica	            Dicas progressivas
-POST	      /api/desafios/<id>/verificar	      Valida a resposta (instável)
-GET	        /api/desafios/progresso	            Progresso da sessão (instável)
-GET	        /api/desafios/conquistas	          Catálogo de conquistas
-GET	        /api/desafios/<id>/configuracao-guiada	Configuração oficial da missão
-GET	        /api/desafios/<id>/galeria	        Galeria, só após concluir
+
+| Método | Rota | Função |
+| :--- | :--- | :--- |
+| POST | `/api/cifrar` | Cifra ou decifra um texto |
+| POST | `/api/percurso` | Percurso elétrico de uma letra |
+| POST | `/api/criptoanalise` | Busca síncrona de posições |
+| POST | `/api/criptoanalise/tarefas` | Inicia busca em segundo plano |
+| GET | `/api/criptoanalise/tarefas/<id>` | Progresso real da busca |
+| POST | `/api/criptoanalise/tarefas/<id>/cancelar` | Cancela a busca |
+| GET | `/api/desafios` | Catálogo público de missões |
+| GET | `/api/desafios/<id>` | Detalhe da missão |
+| POST | `/api/desafios/<id>/dica` | Dicas progressivas |
+| POST | `/api/desafios/<id>/verificar` | Valida a resposta (em correção) |
+| GET | `/api/desafios/progresso` | Progresso da sessão (em correção) |
+| GET | `/api/desafios/conquistas` | Catálogo de conquistas |
+| GET | `/api/desafios/<id>/configuracao-guiada` | Configuração oficial da missão |
+| GET | `/api/desafios/<id>/galeria` | Galeria, só após concluir |
 
 ## Criptoanálise
 
-- O módulo criptoanalise.py recebe um texto cifrado e testa posições iniciais, mantendo fixos os rotores, os anéis e o refletor informados. Na M3 o espaço é de 26³ = 17.576 combinações; na M4, 26⁴ = 456.976.
-
-- Para cada combinação, o texto é decifrado e pontuado por um modelo de quadrigramas calculado sobre corpus do Project Gutenberg (Machado de Assis, José de Alencar, Austen, Dickens, Melville). A pontuação avalia o texto nos dois idiomas e fica com o melhor resultado, com um viés pequeno a favor do idioma escolhido e um bônus para palavras frequentes. Textos com mais de 60 letras passam por duas etapas: triagem das 2.048 melhores combinações com um prefixo de 50 letras e reavaliação desses candidatos com o texto completo.
-
-- Parâmetros principais: texto cifrado, três rotores principais, três anéis (1–26), refletor, idioma (pt ou en), modelo (M3 ou M4), rotor grego na M4 e limite de candidatos (1–100).
-
-- Retorno: total de combinações testadas, idioma, tempo em segundos e a lista ordenada de candidatos, cada um com texto decifrado, posições, rotores, anéis, refletor e pontuação.
-
-- Limitação conhecida: a busca assume plugboard vazio. Com conexões ativas, o espaço cresce para um tamanho que esta implementação não cobre.
-
-## Status do projeto
-
-✅ Motor Enigma M3 e M4 (rotores, refletor, plugboard, duplo avanço)
-✅ Percurso elétrico de uma letra
-✅ API de cifragem e decifragem
-✅ Criptoanálise no backend, com progresso e cancelamento
-✅ CLI
-⚠️ Criptoanálise na interface: conectada à API, mas com rotores e anéis fixos
-⚠️ Desafios históricos: catálogo, dicas e galeria prontos; a verificação de resposta retorna erro 500
-⚠️ Galeria histórica: imagens presentes no repositório, caminho inconsistente no código
-⚠️ Suíte de testes: 229 de 234 passando
-❌ Telas "Documentação" e "Ontem & hoje" ligadas a conteúdo dinâmico
-❌ Criptoanálise com plugboard
+- O módulo `criptoanalise.py` recebe um texto cifrado e testa posições iniciais, mantendo fixos os rotores, os anéis e o refletor informados. Na M3 o espaço é de 26³ = 17.576 combinações; na M4, 26⁴ = 456.976.
+- Para cada combinação, o texto é decifrado e pontuado por um modelo de quadrigramas calculado sobre corpus do Project Gutenberg (Machado de Assis, José de Alencar, Austen, Dickens, Melville). A pontuação avalia o texto nos dois idiomas e fica com o melhor resultado.
+- Textos com mais de 60 letras passam por duas etapas: triagem das 2.048 melhores combinações com um prefixo de 50 letras e reavaliação desses candidatos com o texto completo.
+- **Limitação conhecida:** a busca assume plugboard vazio. Com conexões ativas, o espaço cresce para um tamanho que esta implementação não cobre.
 
 ## Contexto Histórico
 
-- A quebra da Enigma não foi obra de uma pessoa. O matemático polonês Marian Rejewski reconstruiu a fiação da máquina em 1932, trabalhando só com interceptações. Em 1939, com a invasão da Polônia, o método e os equipamentos foram entregues aos britânicos, que instalaram a operação em Bletchley Park.
+A quebra da Enigma não foi obra de uma pessoa. O matemático polonês Marian Rejewski reconstruiu a fiação da máquina em 1932, trabalhando só com interceptações. Em 1939, com a invasão da Polônia, o método e os equipamentos foram entregues aos britânicos, que instalaram a operação em Bletchley Park.
 
-- Ali, Alan Turing e Gordon Welchman desenvolveram a Bombe, máquina eletromecânica que testava hipóteses sobre a configuração do dia. A leitura do tráfego alemão contribuiu para a Batalha do Atlântico e para o esforço aliado, ainda que o alcance real dessa contribuição seja objeto de debate entre historiadores.
-
-- O trabalho permaneceu secreto por décadas e só se tornou público nos anos 1970.
+Ali, Alan Turing e Gordon Welchman desenvolveram a Bombe, máquina eletromecânica que testava hipóteses sobre a configuração do dia. A leitura do tráfego alemão contribuiu para a Batalha do Atlântico e para o esforço aliado, ainda que o alcance real dessa contribuição seja objeto de debate entre historiadores. O trabalho permaneceu secreto por décadas e só se tornou público nos anos 1970.
 
 ## Autor
 
-- Emanoel do Prado, Estudante de Sistemas de Informação
+**Emanoel do Prado** — Estudante de Sistemas de Informação
 
-- Linkedin: www.linkedin.com/in/emanoel-do-prado-634b7913b
-- GitHub: https://github.com/emanoelpr
+- LinkedIn: [www.linkedin.com/in/emanoel-do-prado-634b7913b](https://www.linkedin.com/in/emanoel-do-prado-634b7913b)
+- GitHub: [https://github.com/emanoelpr](https://github.com/emanoelpr)
