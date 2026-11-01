@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#171a17">
+<title>Enigma — História e criptografia</title>
+<link rel="stylesheet" href="css/style.css"><script src="js/app.js" defer></script>
+</head>
+<body>
+<div class="shell">
+<aside class="sidebar" id="sidebar">
+<a class="brand" href="#dashboard" data-screen="dashboard"><span class="brand-mark">E</span><span><b>Enigma</b></span></a>
+
+<nav aria-label="Navegação principal">
+<button class="nav-item active" data-screen="dashboard"><i>⌂</i>Visão geral</button>
+<button class="nav-item" data-screen="intro"><i>◎</i>Conheça a Enigma</button>
+<button class="nav-item" data-screen="machine"><i>⌘</i>Máquina & cifra</button>
+<button class="nav-item" data-screen="trace"><i>⇢</i>Percurso da letra</button>
+<button class="nav-item" data-screen="cryptanalysis"><i>⌕</i>Criptoanálise</button>
+
+<button class="nav-item" data-screen="challenges"><i>◇</i>Desafios históricos</button>
+<button class="nav-item" data-screen="docs"><i>▤</i>Documentação</button>
+<button class="nav-item" data-screen="comparison"><i>⇄</i>Ontem & hoje</button>
+<button class="nav-item" data-screen="profile"><i>◉</i>Meu progresso</button>
+</nav>
+</aside>
+<main class="main">
+<header class="topbar"><button class="mobile-menu" id="mobileMenu" aria-label="Abrir menu">☰</button><div class="crumb"><b id="currentSection">Visão geral</b></div><div class="top-right"><span><i class="dot"></i> AMBIENTE LOCAL</span><div class="avatar">E</div></div></header>
+
+<section class="screen active" id="screen-dashboard" data-title="Visão geral">
+<div class="page-intro"><div class="eyebrow">ENIGMA · LABORATÓRIO EDUCATIVO</div><h1>Desvende a <em>máquina</em> que guardava segredos.</h1><p>Este projeto recria a máquina Enigma em Python: cifre e decifre mensagens, acompanhe o caminho elétrico de cada letra e investigue configurações desconhecidas — a mesma disciplina praticada em Bletchley Park durante a Segunda Guerra.</p><div class="actions"><button class="btn primary" data-go="machine">Abrir a máquina ↗</button><button class="btn quiet" data-go="intro">Conhecer a história →</button></div></div>
+<div class="section-head"><div><div class="eyebrow">EXPLORE</div><h2>Os módulos do laboratório</h2></div></div>
+<div class="module-grid">
+<button class="module-card featured" data-go="machine"><i>⌘</i><b>Máquina Enigma</b><p>Configure rotores, anéis e plugboard. Cifre e decifre mensagens com o motor Python real.</p><span>Experimentar ↗</span></button>
+<button class="module-card" data-go="trace"><i>⇢</i><b>Percurso da letra</b><p>Siga o sinal elétrico passo a passo — plugboard, rotores, refletor — calculado pelo motor real.</p><span>Ver percurso ↗</span></button>
+<button class="module-card" data-go="intro"><i>◎</i><b>Conheça a Enigma</b><p>Da patente de Scherbius a Bletchley Park: história, funcionamento e quebra da cifra.</p><span>Ler ↗</span></button>
+<button class="module-card" data-go="cryptanalysis"><i>⌕</i><b>Criptoanálise</b><p>Busque posições iniciais desconhecidas, com progresso real e cancelamento.</p><span>Investigar ↗</span></button>
+<button class="module-card" data-go="challenges"><i>◇</i><b>Desafios históricos</b><p>Exercícios demonstrativos para treinar a leitura de textos cifrados.</p><span>Aceitar desafio ↗</span></button>
+<button class="module-card" data-go="comparison"><i>⇄</i><b>Ontem &amp; hoje</b><p>Da engrenagem à criptografia digital: o que mudou na proteção da informação.</p><span>Comparar ↗</span></button>
+</div>
+<div class="lower-grid"><article class="panel"><div class="panel-title"><div><div class="eyebrow">PROJETO</div><h3>Como este site está organizado</h3></div></div><p class="muted">O motor Enigma (M3 e M4), a criptoanálise e o percurso da letra são calculados pelo backend Python; a interface envia configurações e exibe resultados. O sistema pessoal de progresso e os desafios autênticos pertencem a fases posteriores — os desafios atuais são demonstrativos e estão identificados como tais.</p></article></div>
+</section>
+
+<section class="screen" id="screen-intro" data-title="Conheça a Enigma">
+<div class="page-intro compact"><div class="eyebrow">02 / CONTEXTO HISTÓRICO</div><h1>Uma máquina.<br><em>Milhões de combinações.</em></h1><p>A Enigma não foi um aparelho único, mas uma família de máquinas de cifrar eletromecânicas baseadas em rotores — e o caso mais famoso da criptoanálise do século XX.</p></div>
+
+<article class="edu-article panel">
+<h2>1. O que foi a Enigma?</h2>
+<p>A Enigma é uma máquina de cifragem eletromecânica que randomiza as 26 letras do alfabeto romano: cada tecla aciona um circuito elétrico que atravessa rotores móveis e volta acendendo a lâmpada da letra cifrada. Foi concebida pelo engenheiro alemão <b>Arthur Scherbius (1878–1929) </b> logo após a Primeira Guerra Mundial e pantenteada em 23 de fevereiro de 1918, inicialmente adotada no mercado comercial em 1920, onde ganhou o seu icônico nome, e posteriormente foi adotada pelas forças armadas de diversos países, mas com maior papel no exército alemão (<i>Wehrmacht</i>) a partir dos anos 1930 como base das comunicações militares. <a href="https://bletchleypark.org.uk/whats-on/our-story" target="_blank" rel="noopener">[Bletchley Park]</a> <a href="https://www.cryptomuseum.com/crypto/enigma/index.htm" target="_blank" rel="noopener">[Crypto Museum]</a></p>
+<p>Seu objetivo era proteger mensagens transmitidas por rádio — canais que qualquer pessoa podia interceptar, transformando mensagens críticas em uma brecha de segurança. A força da máquina vinha da combinação entre rotores, anéis, posições iniciais e plugboard, que produzia milhões de configurações possíveis e mudava a cada dia de operação. Desta maneira, a Enigma é um sistema bidirecional, onde a estação de recebimento precisava ter a configuração exata da estação de cifragem.</p>
+</article>
+
+<article class="edu-article panel">
+<h2>2. Contexto histórico</h2>
+<p>Na Segunda Guerra, as comunicações alemãs dependiam da Enigma, cuja configuração mudava a cada 24 horas. A primeira quebra sistemática, porém, não foi britânica: matemáticos poloneses leram mensagens da Enigma ainda nos anos 1930 e compartilharam seus resultados com Reino Unido e França às vésperas da guerra. <a href="https://www.iwm.org.uk/history/how-alan-turing-cracked-the-enigma-code" target="_blank" rel="noopener">[IWM]</a></p>
+<p>Em <b>Bletchley Park</b>, milhares de pessoas — matemáticos, linguistas, operadoras e pessoal de apoio — sustentaram o esforço de inteligência conhecido como <i>Ultra</i>. </p>
+<b>Alan Turing</b> e <b>Gordon Welchman</b> projetaram a <b>Bombe</b>, máquina eletromecânica que reduzia drasticamente a busca da configuração do dia; o tráfego naval, mais difícil, exigiu técnicas como o <i>Banburismus</i> e material capturado. Tudo isso permaneceu em segredo até os anos 1970 e só se tornou conhecido por inteiro nos anos 1990. <a href="https://www.iwm.org.uk/history/how-alan-turing-cracked-the-enigma-code" target="_blank" rel="noopener">[IWM]</a></p>
+<div class="notice"><b>FATO × SIMPLIFICAÇÃO</b><p>É comum atribuir a quebra da Enigma a uma única pessoa. Porém, historicamente: a base polonesa veio primeiro; a Bombe foi trabalho coletivo (Turing, Welchman, equipe técnica e indústria); cerca de 10 mil pessoas passaram pela organização de Bletchley Park; e o efeito sobre a duração da guerra é uma estimativa de historiadores, não um dado medido. <a href="https://bletchleypark.org.uk/whats-on/our-story" target="_blank" rel="noopener">[Bletchley Park]</a></p></div>
+</article>
+
+<article class="edu-article panel">
+<h2>3. Como a máquina funciona?</h2>
+<p class="muted">Os componentes, na ordem em que o sinal elétrico os atravessa — exatamente a ordem que a tela <button class="link" data-go="trace">Percurso da letra</button> mostra com o motor real:</p>
+<ol class="edu-list">
+<li><b>Teclado</b> — Um teclado com 26 letras do alfabeto romano. Sem números ou espaço. A tecla pressionada fecha o circuito elétrico, enviando o sinal para o restante da máquina. Mecanicamente, também girava um passo dos rotores.</li>
+<li><b>Plugboard</b> — Um painel de conexões feitas por cabos — usualmente 10 conexões, mas sendo possível até 13 conexões, da qual pode trocar pares de letras (por exemplo, A↔B) antes do sinal entrar nos rotores, multiplicando as configurações possíveis.</li>
+<li><b>Rotores</b> — São diferentes discos com fiação interna; cada fio substitui a letra conforme sua posição atual. Há até 10 diferentes rotores com diferentes fiações. O rotor da direita avança a cada tecla; os demais avançam quando o vizinho da direita passa pelo seu entalhe.</li>
+<li><b>Anéis</b> — Estes deslocam a relação entre a letra visível, a fiação e o entalhe, alterando quando cada rotor avança.</li>
+<li><b>Duplo passo</b> — Quando o rotor central está no seu entalhe, ele e o esquerdo avançam juntos na mesma tecla; a sequência de avanços "pula" uma posição.</li>
+<li><b>Refletor</b> — Um componente fixo após os rotores que devolve o sinal e retorna entre os rotores novamente. Garante a recíproca e impede que uma letra seja cifrada como ela mesma.</li>
+<li><b>Lâmpadas</b> — Ao fim, acende a lâmpada da letra cifrada; o operador a anota para cifragem/decifragem e segue para a próxima.</li>
+</ol>
+<p>Nas versões militares usavam-se três rotores (escolhidos de um conjunto de cinco durante 1930–1938, e oito após 1938) mais o refletor B ou C — é a <b>M3</b> deste projeto. A Marinha adotou a Enigma em 1934, mas utilizou exclusivamente a versão <b>M4</b> a partir de 1942: quatro posições, com um <b>rotor grego</b> (Beta ou Gamma) fixo no lugar de um refletor fino (Bfino/Cfino). Historicamente, o rotor grego permanece parado durante a mensagem.</p></article>
+
+<article class="edu-article panel">
+<h2>4. Cifração e decifração</h2>
+<p>Como o refletor devolve o sinal pelo mesmo caminho elétrico, a máquina é <b>recíproca</b>: com a mesma configuração, digitar a mensagem cifrada devolve o texto original.</p>
+<p>Experimente: cifre <b>OLAMUNDO</b> com rotores I-II-III, posições AAA, anéis 1-1-1, refletor B e plugboard vazio — o resultado é <b>TEZOLEFQ</b>. Recarregue a máquina na mesma posição e decifre. Esse par é um dos testes automatizados do projeto.</p>
+<p>A cada tecla os rotores avançam, e a substituição muda letra a letra: a mesma letra raramente é cifrada da mesma forma duas vezes seguidas. Desta maneira, se cifrarmos a sequência: <b>AAAAAA</b>, obteremos: <b>BDZGOW</b>. Decifrar, portanto, exige a máquina exatamente na posição em que o remetente começou.</p>
+</article>
+
+<article class="edu-article panel">
+<h2>5. Quebrando a cifra</h2>
+<p>A ação da criptoanálise é tentar recuperar a mensagem sem conhecer a chave. Nos anos 1940, isso combinava procedimentos dos operadores, material capturado, máquinas de busca — a <i>Bombe</i> — e análise linguística. Este projeto reproduz a parte matemática dessa ideia: a tela <button class="link" data-go="cryptanalysis">Criptoanálise</button> testa posições iniciais e usa quadrigramas de português e inglês para ranquear os textos que parecem língua natural.</p>
+<div class="notice"><b>LIMITES HONESTOS</b><p>A recuperação não é garantida: textos muito curtos são ambíguos; se rotores, anéis, refletor ou plugboard pesquisados não forem os usados na cifração, a busca não encontra; e a pontuação é heurística — o primeiro candidato é o mais provável, não uma certeza. Cabe ao operador buscar entre os resultados o que melhor cabe ao contexto.</p></div>
+</article>
+
+<article class="edu-article panel">
+<h2>6. Legado histórico</h2>
+<p>O trabalho de Bletchley Park contribuiu para o nascimento da computação: após a guerra, Turing projetou o ACE no National Physical Laboratory, e seu conceito de máquina universal (1936) fundamentou a ciência da computação — o Prêmio Turing, criado em 1966, é a maior distinção da área. <a href="https://www.iwm.org.uk/history/how-alan-turing-cracked-the-enigma-code" target="_blank" rel="noopener">[IWM]</a></p>
+<p>A Enigma, porém, não é modelo de segurança atual: cifras mecânicas foram superadas por algoritmos matemáticos publicados e avaliados publicamente. Hoje, criptografia é, na definição do NIST, o conjunto de princípios, meios e métodos para tornar informação ilegível e restaurá-la de forma controlada — veja a seção <button class="link" data-go="comparison">Ontem &amp; hoje</button>. <a href="https://csrc.nist.gov/glossary/term/cryptography" target="_blank" rel="noopener">[NIST]</a></p>
+</article>
+
+<article class="edu-article panel sources">
+<h2>Fontes consultadas</h2>
+<ul class="source-list">
+<li>Imperial War Museums — <a href="https://www.iwm.org.uk/history/how-alan-turing-cracked-the-enigma-code" target="_blank" rel="noopener">How Alan Turing Cracked the Enigma Code</a>.</li>
+<li>Bletchley Park Trust — <a href="https://bletchleypark.org.uk/whats-on/our-story" target="_blank" rel="noopener">Our Story</a>.</li>
+<li>Crypto Museum — <a href="https://www.cryptomuseum.com/crypto/enigma/index.htm" target="_blank" rel="noopener">Enigma cipher machines</a>.</li>
+<li>NIST CSRC — <a href="https://csrc.nist.gov/glossary/term/cryptography" target="_blank" rel="noopener">Glossary: Cryptography</a>.</li>
+</ul>
+</article>
+</section>
+
+<section class="screen" id="screen-machine" data-title="Máquina & cifra">
+<div class="page-intro compact"><div class="eyebrow">03 / ESTAÇÃO DE OPERAÇÃO</div><h1>Configure a <em>máquina.</em></h1><p>Defina uma configuração e experimente o fluxo.</p></div>
+<div class="machine-layout"><form class="panel form-panel" id="machineForm"><div class="panel-title"><div><div class="eyebrow">PARÂMETROS</div><h3>Configuração da Enigma</h3></div><span class="tag" id="modelBadge">M3</span></div>
+<div class="field"><label for="modelType">Modelo da máquina</label><select id="modelType"><option value="M3">Enigma M3 · 3 rotores</option><option value="M4">Enigma M4 · 3 rotores + rotor grego</option></select></div><div class="rotor-select-grid"><div class="field greek-field hidden" id="greekField"><label for="rotorGreek">Rotor grego (M4)</label><select id="rotorGreek"><option>Beta</option><option>Gamma</option></select></div><div class="field"><label for="rotorLeft">Rotor esquerdo</label><select id="rotorLeft"><option>I</option><option>II</option><option>III</option><option>IV</option><option>V</option><option>VI</option><option>VII</option><option>VIII</option></select></div><div class="field"><label for="rotorMiddle">Rotor central</label><select id="rotorMiddle"><option>II</option><option>I</option><option>III</option><option>IV</option><option>V</option><option>VI</option><option>VII</option><option>VIII</option></select></div><div class="field"><label for="rotorRight">Rotor direito</label><select id="rotorRight"><option>III</option><option>I</option><option>II</option><option>IV</option><option>V</option><option>VI</option><option>VII</option><option>VIII</option></select></div></div><div class="field greek-position-wheel hidden" id="greekPositionField">
+    <label for="greekPosition">Posição inicial do rotor grego</label>
+    <div class="letter-wheels greek-position-control">
+        <div class="letter-wheel" data-greek-wheel>
+            <button type="button" aria-label="Aumentar posição do rotor grego" data-step="1">▲</button>
+            <b>A</b>
+            <button type="button" aria-label="Diminuir posição do rotor grego" data-step="-1">▼</button>
+            <small>ROTOR GREGO</small>
+        </div>
+    </div>
+    <input id="greekPosition" class="sr-only" maxlength="1" value="A" pattern="[A-Za-z]" aria-label="Posição inicial do rotor grego">
+</div>
+<div class="field">
+    <label>Posições iniciais</label>
+    <div class="letter-wheels" id="positionWheels">
+        <div class="letter-wheel" data-wheel="0">
+            <button type="button" aria-label="Aumentar posição esquerda" data-step="1">▲</button>
+            <b>A</b>
+            <button type="button" aria-label="Diminuir posição esquerda" data-step="-1">▼</button>
+            <small>ESQUERDO</small>
+        </div>
+        <div class="letter-wheel" data-wheel="1">
+            <button type="button" aria-label="Aumentar posição central" data-step="1">▲</button>
+            <b>A</b>
+            <button type="button" aria-label="Diminuir posição central" data-step="-1">▼</button>
+            <small>CENTRAL</small>
+        </div>
+        <div class="letter-wheel" data-wheel="2">
+            <button type="button" aria-label="Aumentar posição direita" data-step="1">▲</button>
+            <b>A</b>
+            <button type="button" aria-label="Diminuir posição direita" data-step="-1">▼</button>
+            <small>DIREITO</small>
+        </div>
+    </div>
+    <input id="positions" class="sr-only" maxlength="3" value="AAA" pattern="[A-Za-z]{3}" aria-label="Posições iniciais dos rotores">
+</div><div class="field"><label>Anéis (1–26)</label><div class="letter-wheels ring-wheels" id="ringWheels"><div class="letter-wheel" data-ring="0"><button type="button" aria-label="Aumentar anel esquerdo" data-step="1">▲</button><b>01</b><button type="button" aria-label="Diminuir anel esquerdo" data-step="-1">▼</button><small>ESQUERDO</small></div><div class="letter-wheel" data-ring="1"><button type="button" aria-label="Aumentar anel central" data-step="1">▲</button><b>01</b><button type="button" aria-label="Diminuir anel central" data-step="-1">▼</button><small>CENTRAL</small></div><div class="letter-wheel" data-ring="2"><button type="button" aria-label="Aumentar anel direito" data-step="1">▲</button><b>01</b><button type="button" aria-label="Diminuir anel direito" data-step="-1">▼</button><small>DIREITO</small></div></div><input id="rings" class="sr-only" value="1-1-1" aria-label="Configuração dos anéis"></div><div class="field"><label for="reflector">Refletor</label><select id="reflector"><option>B</option><option>C</option><option value="B-Thin">B fino (M4)</option><option value="C-Thin">C fino (M4)</option></select></div>
+<div class="field"><label for="plugboard">Plugboard <small>opcional · pares separados por espaço</small></label><input id="plugboard" placeholder="AV BS CG"></div><div class="field"><label for="operationText">Mensagem</label><textarea id="operationText" rows="4" maxlength="1000">HELLO WORLD</textarea><small>Apenas letras A–Z são processadas.</small></div><div class="actions"><button class="btn primary" type="submit">Cifrar mensagem ↗</button><button class="btn outline" type="button" id="decryptDemo">Descriptografar</button><button type="button" id="resetMachine" class="btn outline">Resetar máquina</button></div></form>
+<div class="machine-side"><article class="panel"><div class="panel-title"><div><div class="eyebrow">PAINEL DA MÁQUINA</div><h3>Posição dos rotores</h3></div><span class="tag"></span></div><div class="rotor-windows"><div><small>ESQUERDO</small><b id="displayLeft">A</b><span id="displayRotorLeft">I</span></div><div><small>CENTRAL</small><b id="displayMiddle">A</b><span id="displayRotorMiddle">II</span></div><div><small>DIREITO</small><b id="displayRight">A</b><span id="displayRotorRight">III</span></div></div></article><article class="panel"><div class="panel-title"><div><div class="eyebrow">RESULTADO</div><h3 id="outputHeading">Mensagem cifrada</h3></div><button class="link" id="copyOutput">Copiar ↗</button></div><div class="output" id="outputText">A saída aparecerá aqui.</div><div class="output-meta"><small id="outputCount">0 CARACTERES</small><span class="tag">RESULTADO</span></div></article><article class="panel tip"><b>✳</b><p><strong>Uma mesma configuração é essencial</strong><br><small>Para reproduzir uma mensagem, remetente e destinatário precisam usar configurações compatíveis.</small></p></article></div></div>
+</section>
+
+<section class="screen" id="screen-trace" data-title="Percurso da letra">
+<div class="page-intro compact"><div class="eyebrow">04 / PERCURSO REAL</div><h1>O caminho de <em>uma letra.</em></h1><p>Cada etapa abaixo é calculada pelo motor Enigma em Python — nada aqui é pré-desenhado. Os rotores avançam a cada tecla enviada, inclusive com o duplo passo.</p></div>
+<div class="machine-layout"><form class="panel form-panel" id="traceForm"><div class="panel-title"><div><div class="eyebrow">PARÂMETROS</div><h3>Configuração da máquina</h3></div><span class="tag" id="traceModelBadge">M3 · REAL</span></div>
+<div class="field"><label for="traceModelType">Modelo da máquina</label><select id="traceModelType"><option value="M3">Enigma M3 · 3 rotores</option><option value="M4">Enigma M4 · rotor grego + refletor fino</option></select></div>
+<div class="rotor-select-grid">
+<div class="field hidden" id="traceGreekField"><label for="traceRotorGreek">Rotor grego</label><select id="traceRotorGreek"><option>Beta</option><option>Gamma</option></select></div>
+<div class="field"><label for="traceRotorLeft">Rotor esquerdo</label><select id="traceRotorLeft"></select></div>
+<div class="field"><label for="traceRotorMiddle">Rotor central</label><select id="traceRotorMiddle"></select></div>
+<div class="field"><label for="traceRotorRight">Rotor direito</label><select id="traceRotorRight"></select></div>
+</div>
+<div class="field"><label for="tracePositions">Posições iniciais <small>na M4, a primeira é a do rotor grego</small></label><input id="tracePositions" value="AAA" maxlength="4"></div>
+<div class="field"><label for="traceRings">Anéis (1–26) <small>na M4, informe três; o do grego é fixo</small></label><input id="traceRings" value="1-1-1"></div>
+<div class="field"><label for="traceReflector">Refletor</label><select id="traceReflector"><option>B</option><option>C</option><option value="B-Thin">B fino (M4)</option><option value="C-Thin">C fino (M4)</option></select></div>
+<div class="field"><label for="tracePlugboard">Plugboard <small>opcional · pares separados por espaço</small></label><input id="tracePlugboard" placeholder="AV BS"></div>
+<div class="field"><label for="traceLetterInput">Letra (A–Z)</label><input id="traceLetterInput" maxlength="1" value="A"></div>
+<div class="actions"><button class="btn primary" type="submit" id="runTrace">Enviar letra ↗</button><button class="btn outline" type="button" id="traceReset">Reiniciar posições</button></div>
+<p class="muted tiny">A máquina virtual avança a cada letra enviada; alterar qualquer parâmetro reinicia a sequência. "Reiniciar posições" volta ao ponto de partida.</p>
+</form>
+<div class="machine-side">
+<article class="panel"><div class="panel-title"><div><div class="eyebrow">PERCURSO REAL</div><h3 id="traceHeading">Envie uma letra</h3></div><span class="tag" id="traceStatusTag">AGUARDANDO</span></div>
+<div class="trace-steps" id="traceSteps"></div>
+</article>
+<article class="panel"><div class="panel-title"><div><div class="eyebrow">ROTORES</div><h3>Posições</h3></div></div>
+<div class="rotor-windows">
+<div><small>GREGO</small><b id="traceDisplayGreek">—</b><span id="traceDisplayRotorGreek">—</span></div>
+<div><small>ESQUERDO</small><b id="traceDisplayLeft">A</b><span id="traceDisplayRotorLeft">I</span></div>
+<div><small>CENTRAL</small><b id="traceDisplayMiddle">A</b><span id="traceDisplayRotorMiddle">II</span></div>
+<div><small>DIREITO</small><b id="traceDisplayRight">A</b><span id="traceDisplayRotorRight">III</span></div>
+</div>
+<p class="muted tiny">As posições exibidas são as usadas na última transformação, isto é, após o avanço da tecla.</p>
+</article>
+<article class="panel tip"><b>✳</b><p><strong>Por que o caminho muda?</strong><br><small>Os rotores avançam a cada tecla; a mesma letra pode produzir saídas diferentes conforme a posição da máquina.</small></p></article>
+</div></div>
+</section>
+
+<section class="screen" id="screen-cryptanalysis" data-title="Criptoanálise">
+<div class="page-intro compact"><div class="eyebrow">05 / INVESTIGAÇÃO CRIPTOGRÁFICA</div><h1>Procure a chave.<br><em>Teste hipóteses.</em></h1><p>Informe o texto cifrado e escolha M3 ou M4. O sistema testa automaticamente as posições iniciais previstas para o modelo selecionado.</p></div>
+<div class="two-col analysis-layout"><article class="panel"><div class="panel-title"><div><div class="eyebrow">TEXTO DE ENTRADA</div><h3>Mensagem interceptada</h3></div><span class="tag">CIFRADO</span></div><label class="sr-only" for="cipherInput">Texto cifrado</label><textarea id="cipherInput" rows="6">OPCILLAZFXLQTDNLGGLEKDIZOKQKGXIEZKD</textarea>
+<div class="field"><label for="analysisModel">Modelo da Enigma</label><select id="analysisModel"><option value="M3">Enigma M3</option><option value="M4">Enigma M4</option></select></div>
+<div class="field"><label for="analysisLanguage">Idioma do texto original</label><select id="analysisLanguage"><option value="pt">Português</option><option value="en">Inglês</option></select></div>
+<button class="btn primary full" id="startAnalysis"><i id="lupaAnalise">⌕</i> Iniciar análise ↗</button><button class="btn outline full hidden" id="cancelAnalysis" type="button">Cancelar análise</button><p class="muted tiny">A busca é independente da tela “Máquina & cifra”. Nesta versão, o sistema testa posições iniciais com rotores I-II-III, anéis 1-1-1 e plugboard vazio.</p></article>
+<article class="panel"><div class="panel-title"><div><div class="eyebrow">PAINEL DE RESULTADOS</div><h3>Hipóteses encontradas</h3></div><span class="tag" id="analysisStatus">AGUARDANDO</span></div><div id="analysisEmpty" class="empty"><b>⌕</b><strong>A investigação começa com uma hipótese.</strong><p>Execute a busca para avaliar configurações reais com o motor Python.</p></div><div id="analysisResult" class="hidden" aria-live="polite"></div></article></div>
+</section>
+
+<section class="screen" id="screen-challenges" data-title="Desafios históricos">
+<div class="page-intro compact"><div class="eyebrow">06 / JORNADA DE INVESTIGAÇÃO</div><h1>Mensagens do <em>passado.</em></h1><p>Quatro missões progressivas contextualizadas na Segunda Guerra. Cada uma apresenta o cenário, prepara você para a tarefa, resolve com a máquina real e termina com uma conquista e a galeria histórica do local. As mensagens são reconstruções educacionais — cada missão identifica o que é fato documentado.</p></div>
+<div class="section-head"><div><div class="eyebrow">MISSÕES</div><h2>Sua jornada</h2></div><small id="challengeCatalogStatus">CARREGANDO CATÁLOGO…</small></div>
+<div class="challenge-grid" id="challengeGrid"></div>
+<article class="panel challenge-workspace hidden" id="challengeWorkspace">
+<div class="panel-title"><div><div class="eyebrow" id="challengeDificuldade">MISSÃO</div><h3 id="challengeTitle">—</h3></div><button class="link" id="closeChallenge">Fechar ×</button></div>
+<div class="challenge-meta-line"><span class="tag" id="challengeModelTag">M3</span><span class="tag recon-tag" id="challengeNatureTag">RECONSTRUÇÃO EDUCACIONAL</span></div>
+<div id="challengeStageA" class="challenge-stage" aria-live="polite"></div>
+<div id="challengeStageB" class="challenge-stage hidden"></div>
+<div id="challengeStageC" class="challenge-stage hidden"></div>
+<div id="challengeStageD" class="challenge-stage hidden"></div>
+</article>
+</section>
+
+<section class="screen" id="screen-docs" data-title="Documentação">
+<div class="page-intro compact"><div class="eyebrow">07 / BASE DE CONHECIMENTO</div><h1>Documentação & <em>referências.</em></h1><p>Consulte os conceitos históricos, a organização dos componentes e a arquitetura técnica do projeto.</p></div>
+<div class="docs-layout"><nav class="docs-nav"><button class="docs-tab active" data-doc="history">Contexto histórico</button><button class="docs-tab" data-doc="components">Componentes</button><button class="docs-tab" data-doc="python">Implementação Python</button><button class="docs-tab" data-doc="architecture">Arquitetura prevista</button></nav><article class="panel docs-content" id="docsContent"><div class="eyebrow">DOCUMENTAÇÃO / 01</div><h2>Contexto histórico</h2><p>A Enigma foi uma família de máquinas de cifragem eletromecânicas, com diferentes modelos e configurações.</p><h3>O princípio da cifra</h3><p>O movimento dos rotores alterava o mapeamento aplicado às letras. O refletor encaminhava o sinal de volta, e o plugboard podia acrescentar trocas de pares.</p><div class="notice"><b>REFERÊNCIAS</b><p>A versão final deverá incluir fontes bibliográficas e museológicas verificadas.</p></div></article></div>
+</section>
+
+<section class="screen" id="screen-comparison" data-title="Ontem & hoje">
+<div class="page-intro compact"><div class="eyebrow">08 / CRIPTOGRAFIA EM PERSPECTIVA</div><h1>Ontem, hoje e os <em>segredos.</em></h1><p>A Enigma resolveu, em seu tempo, um problema que continua em pé: conversar por canais que adversários podem escutar. O que mudou foram os instrumentos.</p></div>
+
+<article class="edu-article panel">
+<h2>1. Ontem: comunicações e cifras mecânicas</h2>
+<p>A segurança da Enigma residia em três pilares: a fiação dos rotores (fixa e secreta), a configuração diária (rotores, anéis, posições iniciais, plugboard) e os <b>procedimentos operacionais</b>. Nenhum desses pilares era infalível: mensagens reutilizadas, escolhas previsíveis de chaves e material capturado alimentaram a criptoanálise — o Banburismus, por exemplo, explorava hábitos operacionais, não apenas matemática. <a href="https://www.iwm.org.uk/history/how-alan-turing-cracked-the-enigma-code" target="_blank" rel="noopener">[IWM]</a></p>
+<p>As limitações também eram estruturais: a máquina nunca cifrava uma letra como ela mesma (uma marca que os analistas exploravam) e o enorme volume de tráfego interceptado fornecia matéria-prima abundante para análise.</p>
+</article>
+
+<article class="edu-article panel">
+<h2>2. A transição tecnológica</h2>
+<p>Do pós-guerra em diante, a criptografia migrou das engrenagens para a matemática digital: chaves eletrônicas, algoritmos padronizados implementados em computadores e, mais tarde, criptografia de chave pública. O mesmo Turing que ajudou a quebrar a Enigma havia formalizado, em 1936, o conceito de máquina universal — fundamento teórico da computação que tornou essa transição possível. <a href="https://www.iwm.org.uk/history/how-alan-turing-cracked-the-enigma-code" target="_blank" rel="noopener">[IWM]</a></p>
+</article>
+
+<article class="edu-article panel">
+<h2>3. Hoje: proteção da informação</h2>
+<p>Criptografia é a disciplina que transforma dados para esconder seu conteúdo, impedir o uso não autorizado e evitar modificações indetectáveis. <a href="https://csrc.nist.gov/glossary/term/cryptography" target="_blank" rel="noopener">[NIST]</a> Ela opera em mensageiros, no HTTPS do navegador, nos cartões e nos dispositivos do dia a dia. Três diferenças centrais em relação às cifras mecânicas:</p>
+<ol class="edu-list">
+<li><b>Chaves digitais</b> — o segredo são números enormes escolhidos por algoritmos, não posições de engrenagens.</li>
+<li><b>Algoritmos públicos</b> — os padrões modernos são publicados e avaliados em público; a segurança depende da chave, não do sigilo do método.</li>
+<li><b>Autenticação e integridade</b> — além de esconder o conteúdo, os sistemas atuais provam quem enviou a mensagem e se ela foi alterada no caminho.</li>
+</ol>
+</article>
+
+<article class="edu-article panel">
+<h2>4. O que mudou e o que permanece?</h2>
+<div class="comparison-table">
+<div class="comparison-row header"><b>ASPECTO</b><b>ENIGMA (1930–40s)</b><b>CRIPTOGRAFIA MODERNA</b></div>
+<div class="comparison-row"><b>Objetivo</b><span>Proteger comunicações por canais inseguros</span><span>O mesmo problema, em escala global</span></div>
+<div class="comparison-row"><b>Chave</b><span>Rotores, anéis, posições e plugboard do dia</span><span>Chaves digitais geradas e gerenciadas por algoritmos</span></div>
+<div class="comparison-row"><b>Segredo do método</b><span>Fiação escondida; algoritmo fixo na máquina</span><span>Algoritmos públicos, avaliados pela comunidade</span></div>
+<div class="comparison-row"><b>Erro de procedimento</b><span>Configurações repetidas e previsíveis derrubavam o sistema</span><span>Gestão inadequada de chaves e certificados segue sendo a falha comum</span></div>
+<div class="comparison-row"><b>Ataque</b><span>Criptoanálise estatística e eletromecânica</span><span>Análise matemática, de implementações e de protocolos</span></div>
+</div>
+<p class="muted">Um ponto permanece idêntico: chaves e procedimentos ruins comprometem sistemas bons — foi assim com a Enigma e é assim hoje.</p>
+</article>
+
+<article class="edu-article panel">
+<h2>5. Experimente no projeto</h2>
+<p>Este site é um exemplo vivo da diferença. O motor simula uma cifra mecânica dos anos 1940, cujo espaço de chaves era limitado e varrível: a tela de criptoanálise percorre as 456.976 posições da M4 em segundos com hardware comum. Nenhum algoritmo moderno se protege desse modo — as cifras atuais são desenhadas para que esse tipo de varredura seja inviável. <b>Use este projeto para estudar história e criptoanálise, nunca para proteger dados reais.</b></p>
+</article>
+
+<article class="edu-article panel sources">
+<h2>Fontes</h2>
+<ul class="source-list">
+<li>Imperial War Museums — <a href="https://www.iwm.org.uk/history/how-alan-turing-cracked-the-enigma-code" target="_blank" rel="noopener">How Alan Turing Cracked the Enigma Code</a>.</li>
+<li>NIST CSRC — <a href="https://csrc.nist.gov/glossary/term/cryptography" target="_blank" rel="noopener">Glossary: Cryptography</a>.</li>
+<li>Bletchley Park Trust — <a href="https://bletchleypark.org.uk/whats-on/our-story" target="_blank" rel="noopener">Our Story</a>.</li>
+<li>Crypto Museum — <a href="https://www.cryptomuseum.com/crypto/enigma/index.htm" target="_blank" rel="noopener">Enigma cipher machines</a>.</li>
+</ul>
+</article>
+</section>
+
+<section class="screen" id="screen-profile" data-title="Meu progresso">
+<div class="page-intro compact"><div class="eyebrow">09 / CADERNO DE APRENDIZAGEM</div><h1>Seu percurso de <em>investigação.</em></h1><p>O progresso deste protótipo existe apenas durante a sessão atual do navegador.</p></div>
+<div class="panel profile-header"><div class="profile-avatar">E</div><div><div class="eyebrow">PESQUISADOR EM FORMAÇÃO</div><h2>Criptoanalista iniciante</h2><p class="muted">Perfil local de demonstração</p></div><div class="profile-points"><small>PONTUAÇÃO</small><b id="profilePoints">000</b></div></div>
+<div class="stat-grid"><article class="stat-card"><small>MÓDULOS VISITADOS</small><b id="visitedCount">01 <span>/ 09</span></b><p>Exploração do laboratório</p></article><article class="stat-card"><small>DESAFIOS CONCLUÍDOS</small><b id="completedCount">00</b><p>Missões verificadas</p></article><article class="stat-card"><small>TAXA DE ACERTO</small><b id="accuracyRate">—</b><p>Após responder desafios</p></article><article class="stat-card"><small>CONQUISTAS</small><b id="achievementCount">01</b><p>Primeiro acesso</p></article></div>
+<div class="two-col profile-lower"><article class="panel"><div class="panel-title"><div><div class="eyebrow">MÓDULOS</div><h3>Trilha de aprendizagem</h3></div></div><div id="moduleProgressList"></div></article><article class="panel"><div class="panel-title"><div><div class="eyebrow">CONQUISTAS</div><h3>Realizações desbloqueadas</h3></div><small id="achievementsCount">0 / 0</small></div><div id="achievementsGrid" class="achievements-grid"></div></article><article class="panel"><div class="panel-title"><div><div class="eyebrow">REGISTRO</div><h3>Atividade recente</h3></div></div><div id="activityList" class="activity-list"><p class="muted">Suas atividades aparecerão aqui.</p></div><button class="btn outline full" id="resetProgress">Reiniciar progresso local</button></article></div>
+</section>
+<footer class="footer"><span>ENIGMA · PROTÓTIPO EDUCACIONAL</span><span>UMA EXPLORAÇÃO DA HISTÓRIA DA CRIPTOGRAFIA</span></footer>
+</main></div><div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body></html>
