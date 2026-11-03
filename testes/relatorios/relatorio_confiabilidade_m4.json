@@ -1,0 +1,47 @@
+{
+  "descricao": "Bateria de confiabilidade da criptoanálise M4",
+  "escopo_por_caso": 614175744,
+  "casos": {
+    "gamma-cfino": {
+      "id": "gamma-cfino",
+      "descricao": "Mensagem sintética com Gamma e refletor Cfino",
+      "texto_claro": "RELATORIOCONFIRMADOTRANSMITIDOANTESDOAMANHECER",
+      "mensagem_cifrada": "UIVYQDKMGLIJMXQOQGERTCXKRGUOFSIRZLRLESBVGSJDHE",
+      "comprimento_mensagem": 46,
+      "configuracao_original": {
+        "modelo": "M4",
+        "rotores": [
+          "VIII",
+          "V",
+          "III"
+        ],
+        "rotor_grego": "Gamma",
+        "refletor": "Cfino",
+        "posicao_grega": "M",
+        "posicoes_principais": "LQF",
+        "aneis_principais": [
+          8,
+          14,
+          21
+        ],
+        "plugboard": ""
+      },
+      "configuracoes_esperadas": 614175744,
+      "configuracoes_avaliadas": 614175744,
+      "cobertura_completa": true,
+      "tempo_segundos_externo": 1072.275,
+      "tempo_segundos_algoritmo": 1072.275,
+      "candidatos_retornados": 100,
+      "ranking_texto_correto": 1,
+      "texto_no_top_10": true,
+      "texto_no_top_25": true,
+      "texto_no_top_100": true,
+      "configuracao_fisica_exata_no_top_100": true,
+      "mapa_eletrico_equivalente_no_top_100": true,
+      "ranking_configuracao_equivalente": 1,
+      "candidatos_verificados_pelo_motor_real": true,
+      "progresso_final_observado": 614175744,
+      "eventos_progresso": 2080
+    }
+  }
+}

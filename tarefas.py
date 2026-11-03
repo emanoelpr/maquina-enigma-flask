@@ -1,8 +1,8 @@
-"""Execução de criptoanálise em segundo plano, com progresso e cancelamento.
+"""Gerenciamento de tarefas de criptoanálise em segundo plano.
 
-O progresso reportado é o trabalho real da busca (combinacoes_testadas
-atualizado por atacar_posicoes); o cancelamento interrompe o laço em
-pontos seguros e frequentes. Nada aqui é simulado com temporizadores.
+Suporta tanto a API legada (atacar_posicoes) quanto os novos modos
+(configurada, ampliada e avançada) de busca. O progresso é baseado em
+callbacks reais dos algoritmos, nunca em temporizadores simulados.
 """
 
 import threading
@@ -10,96 +10,184 @@ import time
 import uuid
 
 from criptoanalise import BuscaCancelada, atacar_posicoes
+from busca_configuracoes import investigar
+
+
+class ServidorOcupado(RuntimeError):
+    """Indica que o limite de buscas simultâneas foi atingido."""
 
 
 class GerenciadorDeTarefas:
-    """Mantém as tarefas de busca e o estado compartilhado entre threads.
+    """Executa buscas em threads e fornece snapshots seguros para consulta."""
 
-    Cada tarefa roda em uma thread daemon. O estado é protegido por uma
-    trava única; leituras devolvem um retrato (snapshot) do momento.
-    """
-
-    def __init__(self):
+    def __init__(self, max_concorrentes=1):
+        if isinstance(max_concorrentes, bool) or not isinstance(max_concorrentes, int) or max_concorrentes < 1:
+            raise ValueError("max_concorrentes deve ser um inteiro positivo.")
         self._tarefas = {}
         self._trava = threading.Lock()
+        self._max_concorrentes = max_concorrentes
 
     def iniciar(self, parametros):
-        """Cria a tarefa, inicia a thread e devolve o estado inicial."""
-        total = 26 ** 4 if parametros["modelo"] == "M4" else 26 ** 3
+        """Valida capacidade, registra a tarefa e inicia a execução."""
+        parametros = dict(parametros)
+        modo_novo = "modo" in parametros
+        espaco = parametros.pop("espaco", None)
+        modelo = parametros.get("modelo", "M3")
+        total_inicial = (
+            int((espaco or {}).get("configuracoes_exaustivas") or 0)
+            if modo_novo
+            else (26 ** 4 if modelo == "M4" else 26 ** 3)
+        )
         id_tarefa = uuid.uuid4().hex[:12]
+        agora = time.time()
         tarefa = {
             "id_tarefa": id_tarefa,
             "estado": "executando",
+            "modo": parametros.get("modo", "configurada" if modo_novo else "legada"),
+            "modelo": modelo,
             "combinacoes_testadas": 0,
-            "total_combinacoes": total,
-            "inicio": time.time(),
+            "total_combinacoes": total_inicial,
+            "porcentagem": 0.0,
+            "avaliadas_total": 0,
+            "fase_nome": "Preparando busca",
+            "fase_numero": 1,
+            "fases_total": 1,
+            "fase_feitas": 0,
+            "fase_total": total_inicial,
+            "inicio": agora,
             "resultado": None,
             "erro": None,
             "cancelamento": threading.Event(),
         }
 
-        def executar():
-            try:
-                resultado = atacar_posicoes(
-                    progresso=self._registrar_progresso(tarefa),
-                    cancelado=tarefa["cancelamento"].is_set,
-                    **parametros,
+        with self._trava:
+            ativas = sum(1 for t in self._tarefas.values() if t["estado"] == "executando")
+            if ativas >= self._max_concorrentes:
+                raise ServidorOcupado(
+                    "Já existe uma criptoanálise em execução. Aguarde sua conclusão ou cancele-a antes de iniciar outra."
                 )
+            self._tarefas[id_tarefa] = tarefa
+
+        def executar():
+            progresso = self._registrar_progresso(tarefa)
+            try:
+                if modo_novo:
+                    # 'espaco' é metadado da API, não argumento de investigar().
+                    resultado = investigar(
+                        progresso=progresso,
+                        cancelado=tarefa["cancelamento"].is_set,
+                        **parametros,
+                    )
+                else:
+                    resultado = atacar_posicoes(
+                        progresso=progresso,
+                        cancelado=tarefa["cancelamento"].is_set,
+                        **parametros,
+                    )
                 with self._trava:
                     tarefa["estado"] = "concluida"
                     tarefa["resultado"] = resultado
-            except BuscaCancelada:
+                    tarefa["porcentagem"] = 100.0
+                    tarefa["fase_nome"] = "Concluída"
+                    tarefa["tempo_total"] = round(time.time() - tarefa["inicio"], 3)
+            except BuscaCancelada as erro:
                 with self._trava:
                     tarefa["estado"] = "cancelada"
-            except Exception as erro:  # registrada e devolvida ao usuário
+                    tarefa["erro"] = None
+                    tarefa["avaliadas_total"] = max(
+                        tarefa["avaliadas_total"],
+                        getattr(erro, "combinacoes_testadas", 0),
+                    )
+                    tarefa["fase_nome"] = "Cancelada"
+                    tarefa["tempo_total"] = round(time.time() - tarefa["inicio"], 3)
+            except Exception as erro:  # snapshot expõe a falha para diagnóstico
                 with self._trava:
                     tarefa["estado"] = "erro"
                     tarefa["erro"] = str(erro)
+                    tarefa["fase_nome"] = "Erro"
+                    tarefa["tempo_total"] = round(time.time() - tarefa["inicio"], 3)
 
-        thread = threading.Thread(target=executar, daemon=True)
-        with self._trava:
-            self._tarefas[id_tarefa] = tarefa
+        thread = threading.Thread(target=executar, daemon=True, name=f"cripto-{id_tarefa}")
         thread.start()
         return self.estado(id_tarefa)
 
     def _registrar_progresso(self, tarefa):
-        """Devolve a função de progresso que atualiza o estado da tarefa."""
-
-        def progresso(feitas, total):
+        """Aceita callbacks legados (feitas,total) e eventos estruturados."""
+        def progresso(*args):
             with self._trava:
-                tarefa["combinacoes_testadas"] = feitas
-                tarefa["total_combinacoes"] = total
-
+                if len(args) == 1 and isinstance(args[0], dict):
+                    evento = args[0]
+                    fase = evento.get("fase")
+                    if isinstance(fase, (tuple, list)):
+                        tarefa["fase_nome"] = str(fase[0])
+                        if len(fase) > 1:
+                            tarefa["fase_numero"] = int(fase[1])
+                        if len(fase) > 2:
+                            tarefa["fases_total"] = int(fase[2])
+                    feitas = int(evento.get("fase_feitas", 0) or 0)
+                    total = int(evento.get("fase_total", 0) or 0)
+                    avaliadas = int(evento.get("avaliadas", feitas) or 0)
+                    tarefa["fase_feitas"] = feitas
+                    tarefa["fase_total"] = total
+                    tarefa["combinacoes_testadas"] = feitas
+                    tarefa["total_combinacoes"] = total
+                    tarefa["avaliadas_total"] = max(tarefa["avaliadas_total"], avaliadas)
+                    tarefa["porcentagem"] = round(100 * feitas / total, 1) if total else 0.0
+                    parciais = evento.get("parciais")
+                    tarefa["parciais"] = parciais if parciais is not None else None
+                elif len(args) == 2:
+                    feitas, total = int(args[0]), int(args[1])
+                    tarefa["fase_nome"] = "Posições iniciais"
+                    tarefa["fase_numero"] = 1
+                    tarefa["fases_total"] = 1
+                    tarefa["fase_feitas"] = feitas
+                    tarefa["fase_total"] = total
+                    tarefa["combinacoes_testadas"] = feitas
+                    tarefa["total_combinacoes"] = total
+                    tarefa["avaliadas_total"] = feitas
+                    tarefa["porcentagem"] = round(100 * feitas / total, 1) if total else 0.0
+                else:
+                    raise TypeError("Formato inesperado do callback de progresso.")
         return progresso
 
     def estado(self, id_tarefa):
-        """Retrato do estado atual da tarefa (ou None se inexistente)."""
+        """Retorna um snapshot sem expor objetos de thread ou eventos."""
         with self._trava:
             tarefa = self._tarefas.get(id_tarefa)
             if tarefa is None:
                 return None
-            total = tarefa["total_combinacoes"] or 1
             retrato = {
                 "id_tarefa": id_tarefa,
                 "estado": tarefa["estado"],
+                "modo": tarefa["modo"],
+                "modelo": tarefa["modelo"],
+                "fase_nome": tarefa["fase_nome"],
+                "fase_numero": tarefa["fase_numero"],
+                "fases_total": tarefa["fases_total"],
+                "fase_feitas": tarefa["fase_feitas"],
+                "fase_total": tarefa["fase_total"],
                 "combinacoes_testadas": tarefa["combinacoes_testadas"],
                 "total_combinacoes": tarefa["total_combinacoes"],
-                "porcentagem": round(
-                    100 * tarefa["combinacoes_testadas"] / total, 1
-                ),
+                "avaliadas_total": tarefa["avaliadas_total"],
+                "porcentagem": tarefa["porcentagem"],
                 "tempo_decorrido": round(time.time() - tarefa["inicio"], 2),
             }
+            if tarefa.get("parciais") is not None:
+                retrato["parciais"] = tarefa["parciais"]
             if tarefa["estado"] == "concluida":
                 retrato["resultado"] = tarefa["resultado"]
             if tarefa["estado"] == "erro":
                 retrato["erro"] = tarefa["erro"]
+            if tarefa.get("tempo_total") is not None:
+                retrato["tempo_total"] = tarefa["tempo_total"]
             return retrato
 
     def cancelar(self, id_tarefa):
-        """Solicita cancelamento; devolve o estado atual (None se inexistente)."""
+        """Solicita cancelamento cooperativo da tarefa."""
         with self._trava:
             tarefa = self._tarefas.get(id_tarefa)
             if tarefa is None:
                 return None
-            tarefa["cancelamento"].set()
+            if tarefa["estado"] == "executando":
+                tarefa["cancelamento"].set()
         return self.estado(id_tarefa)

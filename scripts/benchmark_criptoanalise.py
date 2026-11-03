@@ -30,19 +30,19 @@ from criptoanalise import (  # noqa: E402
 from enigma import Enigma  # noqa: E402
 from string import ascii_uppercase  # noqa: E402
 
-ALFABETO = ascii_uppercase
+alfabeto = ascii_uppercase
 from pontuacao import normalizar  # noqa: E402
 
 # Caso de teste idêntico para as duas versões
-CONFIG_VERDADEIRA = {
+config_verdadeira = {
     "rotores": ("Beta", "IV", "II", "V"),
     "posicoes_rotores": (11, 3, 19, 2),      # L, D, T, C
     "configuracoes_anel": (0, 7, 13, 20),    # anéis 1, 8, 14, 21
     "nome_refletor": "Bfino",
     "conexoes_plugboard": "",
 }
-MENSAGEM = "ATAQUEAOAMANHECERNOLITORALNORTECONFIRMADO"
-BUSCA = {
+mensagem = "ATAQUEAOAMANHECERNOLITORALNORTECONFIRMADO"
+busca = {
     "rotores": ("IV", "II", "V"),
     "aneis": [8, 14, 21],
     "refletor": "Bfino",
@@ -97,7 +97,7 @@ def executar_original(texto_cifrado, rotores, aneis, refletor, idioma, limite, r
         "tempo_cifra": tempo_cifra,
         "tempo_pontuação": tempo_pontuacao,
         # ordem igual à da API: três rotores principais + rotor grego
-        "melhores": ["".join(ALFABETO[i] for i in pos[1:] + pos[:1]) for pos in melhores],
+        "melhores": ["".join(alfabeto[i] for i in pos[1:] + pos[:1]) for pos in melhores],
     }
 
 
@@ -118,17 +118,17 @@ def executar_acelerado(texto_cifrado, limite, **busca):
 def main():
     repeticoes = int(sys.argv[1]) if len(sys.argv) > 1 else 2
 
-    cifrado = Enigma(**CONFIG_VERDADEIRA).cifrar_texto(MENSAGEM)
+    cifrado = Enigma(**config_verdadeira).cifrar_texto(mensagem)
     esperado = "DTC" + "L"  # posições D-T-C + rotor grego L
 
-    print(f"Mensagem: {MENSAGEM} ({len(MENSAGEM)} letras)")
+    print(f"mensagem: {mensagem} ({len(mensagem)} letras)")
     print(f"Configuração verdadeira: posições DTC, rotor grego L, "
           f"anéis 1-8-14-21, refletor Bfino, plugboard vazio")
     print(f"Repetições por versão: {repeticoes}\n")
 
     for nome, funcao in (
-        ("original (antes do P1)", lambda: executar_original(cifrado, **BUSCA)),
-        ("acelerado (atual)", lambda: executar_acelerado(cifrado, **BUSCA)),
+        ("original (antes do P1)", lambda: executar_original(cifrado, **busca)),
+        ("acelerado (atual)", lambda: executar_acelerado(cifrado, **busca)),
     ):
         execuções = [funcao() for _ in range(repeticoes)]
         tempos = [execução["tempo"] for execução in execuções]

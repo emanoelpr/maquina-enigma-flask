@@ -111,7 +111,7 @@ def cliente():
 def test_api_desafios_e2e(cliente):
     resposta = cliente.get("/api/desafios")
     assert resposta.status_code == 200
-    missoes = resposta.get_json()["missoes"]
+    lista_missoes = resposta.get_json()["missoes"]
     assert len(missoes) == 4
     assert all("texto_claro" not in missao for missao in missoes)
 
@@ -129,7 +129,8 @@ def test_api_desafios_e2e(cliente):
         cliente.get("/api/desafios/nao-existe").status_code == 404
     )
 
-    clara = missoes["radio-do-deserto"]["texto_claro"]
+    from desafios import missoes as catalogo_interno
+    clara = catalogo_interno["radio-do-deserto"]["texto_claro"]
     verificacao = cliente.post(
         "/api/desafios/radio-do-deserto/verificar",
         json={"resposta": clara.lower()},

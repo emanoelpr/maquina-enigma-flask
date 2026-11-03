@@ -22,16 +22,6 @@ body {
     color:var(--text);
     font:14px/1.6 var(--sans)
 }
-
-a {
-    color: #276ebe;
-}
-
-a:hover {
-    color: #BFDBFE;
-}
-
-}
 button,input,select,textarea {
     font:inherit
 }
@@ -1985,18 +1975,13 @@ body {
 }
 .brand-mark {
     border:0;
-    font:italic 32px var(--serif);
     width:38px
 }
 .brand b {
-    font:26px var(--serif);
-    letter-spacing:0
+    letter-spacing:.2em
 }
 .nav-item {
-    font-size:12px;
-    padding:11px 12px;
-    border-radius:5px;
-    min-height:42px
+    border-radius:5px
 }
 .nav-item.active {
     background:linear-gradient(90deg,#35442d,#273326);
@@ -2704,6 +2689,236 @@ body {
     }
 
     .achievements-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ============================================================
+   FASE 2.2 — PROGRESSÃO DE ETAPAS, CENÁRIO HISTÓRICO E PISTAS
+   ============================================================ */
+
+.challenge-steps {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--muted, #9aa08a);
+    margin: 0.2rem 0 0.4rem;
+}
+
+.challenge-meta-linha {
+    font-size: 0.82rem;
+    letter-spacing: 0.06em;
+    color: var(--muted, #9aa08a);
+    margin: 0.2rem 0 0.7rem;
+}
+
+.cenario-card {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 0.9rem 1.1rem;
+    margin: 0.6rem 0 1rem;
+}
+
+.cenario-titulo {
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    color: var(--olive, #8a9a5b);
+    margin-bottom: 0.55rem;
+}
+
+.cenario-dados {
+    display: grid;
+    gap: 0.3rem;
+    margin: 0 0 0.75rem;
+}
+
+.cenario-dados div {
+    display: flex;
+    gap: 0.55rem;
+    align-items: baseline;
+}
+
+.cenario-dados dt {
+    min-width: 64px;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    color: var(--muted, #9aa08a);
+    text-transform: uppercase;
+}
+
+.cenario-dados dd {
+    margin: 0;
+    line-height: 1.55;
+}
+
+.cenario-resumo {
+    margin: 0;
+    line-height: 1.65;
+}
+
+.challenge-cipher {
+    font-family: var(--mono, monospace);
+    letter-spacing: 0.14em;
+    padding: 0.7rem 0.9rem;
+    border: 1px dashed rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    margin: 0.8rem 0;
+    word-break: break-all;
+}
+
+.modo-card.selecionado {
+    border-color: var(--olive, #8a9a5b);
+    background: rgba(138, 154, 91, 0.14);
+    box-shadow: inset 2px 0 var(--olive, #8a9a5b);
+}
+
+.challenge-hints .hint .hint-origem {
+    display: block;
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    color: var(--olive, #8a9a5b);
+    margin-bottom: 0.25rem;
+}
+
+@media (max-width: 900px) {
+    .cenario-dados div {
+        flex-direction: column;
+        gap: 0.15rem;
+    }
+}
+
+
+/* ============================================================
+   CRIPTOANÁLISE — MODOS, PARÂMETROS CONHECIDOS E ESCOPO
+   ============================================================ */
+
+.analysis-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.7rem;
+}
+
+.known-params {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 0.7rem 0.9rem;
+    margin: 0.6rem 0;
+}
+
+.known-params legend {
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    color: var(--olive, #8a9a5b);
+    padding: 0 0.3rem;
+    text-transform: uppercase;
+}
+
+.known-row {
+    display: grid;
+    grid-template-columns: 150px 1fr;
+    gap: 0.6rem;
+    align-items: center;
+    margin: 0.35rem 0;
+}
+
+.known-row label {
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+    font-size: 0.85rem;
+}
+
+.known-inputs {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+}
+
+.known-inputs select,
+.known-inputs input {
+    flex: 1 1 70px;
+    min-width: 0;
+    background: var(--panel2, #192321);
+    color: var(--text);
+    border: 1px solid var(--line, #253331);
+    border-radius: 6px;
+    padding: 0.35rem 0.5rem;
+}
+
+.known-inputs select:disabled,
+.known-inputs input:disabled {
+    opacity: 0.4;
+}
+
+.scope-box {
+    border: 1px dashed rgba(255, 255, 255, 0.16);
+    border-radius: 10px;
+    padding: 0.7rem 0.9rem;
+    margin: 0.6rem 0 0.9rem;
+    font-size: 0.82rem;
+}
+
+.scope-box b {
+    display: block;
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    color: var(--olive, #8a9a5b);
+    margin-bottom: 0.4rem;
+}
+
+.scope-box ul {
+    list-style: none;
+    margin: 0 0 0.4rem;
+    padding: 0;
+    display: grid;
+    gap: 0.2rem;
+}
+
+.scope-box li {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.6rem;
+}
+
+.scope-box em {
+    font-style: normal;
+    color: var(--muted, #9aa08a);
+    white-space: nowrap;
+}
+
+.scope-box em.tipo-heur {
+    color: var(--beige, #e6d5b4);
+}
+
+.scope-box p {
+    margin: 0;
+}
+
+.scope-erro {
+    color: var(--beige, #e6d5b4);
+}
+
+.candidate-method {
+    color: var(--olive, #8a9a5b);
+}
+
+#analysisLoading .parciais {
+    margin-top: 0.8rem;
+    text-align: left;
+    width: 100%;
+}
+
+a {
+    color: #276ebe;
+}
+
+a:hover {
+    color: #BFDBFE;
+}
+
+@media (max-width: 900px) {
+    .known-row,
+    .analysis-grid {
         grid-template-columns: 1fr;
     }
 }

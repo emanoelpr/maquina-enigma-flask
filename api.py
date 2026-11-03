@@ -2,12 +2,14 @@
 
 import os
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, session, send_from_directory
 from flask_cors import CORS
 
 from enigma import Enigma
 from criptoanalise import atacar_posicoes
-from tarefas import GerenciadorDeTarefas
+from tarefas import GerenciadorDeTarefas, ServidorOcupado
+from busca_configuracoes import investigar, modos_busca, descrever_espaco
+from plugboard import Plugboard
 from desafios import (
     modos,
     conquistas,
@@ -20,8 +22,12 @@ from desafios import (
     verificar_resposta,
 )
 
-app = Flask(__name__)
-CORS(app)
+app = Flask(__name__, static_folder="enigma_frontend", static_url_path="")
+CORS(
+    app,
+    supports_credentials=True,
+    origins=[r"http://127\.0\.0\.1(?::\d+)?", r"http://localhost(?::\d+)?"],
+)
 
 # Sessão assinada por cookie: guarda as missões concluídas e sustenta o
 # desbloqueio de conquistas no BACKEND, sobrevivendo a recarregar a página
@@ -31,6 +37,28 @@ app.secret_key = os.environ.get(
 )
 
 gerenciador = GerenciadorDeTarefas()
+
+@app.route("/")
+def frontend_index():
+    """Serve a interface na mesma origem da API para preservar a sessão Flask."""
+    return send_from_directory(app.static_folder, "index.html")
+
+# Pasta onde as fotografias da galeria estão armazenadas.
+PASTA_GALERIA = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    "enigma_frontend",
+    "assets",
+    "galeria"
+)
+
+
+@app.route("/assets/galeria/<path:nome_arquivo>")
+def servir_imagem_galeria(nome_arquivo):
+    """Entrega as fotografias armazenadas no projeto."""
+    return send_from_directory(
+        PASTA_GALERIA,
+        nome_arquivo
+    )
 
 max_mensagem = 5000
 
@@ -256,6 +284,113 @@ def _parametros_criptoanalise(dados):
     }
 
 
+def _parametros_investigacao(dados):
+    """Valida o corpo do NOVO formato (com "modo") e devolve os parâmetros.
+
+    Cada parâmetro é "conhecido" quando enviado e "desconhecido" quando
+    omitido ou nulo. Na busca configurada, todos são obrigatórios.
+    """
+    modo = texto_de(dados, "modo", "configurada").strip().lower()
+    if modo not in modos_busca:
+        raise ErroDeEntrada("Modo inválido. Use configurada, ampliada ou avancada.")
+    modelo = texto_de(dados, "modelo", "M3").strip().upper()
+    if modelo not in ("M3", "M4"):
+        raise ErroDeEntrada("Modelo inválido. Use M3 ou M4.")
+    mensagem = texto_de(dados, "mensagem", "")
+    if not mensagem.strip():
+        raise ErroDeEntrada("Digite o texto cifrado.")
+    if len(mensagem) > max_mensagem:
+        raise ErroDeEntrada(f"O texto cifrado deve ter no máximo {max_mensagem} caracteres.")
+    idioma = texto_de(dados, "idioma", "pt").strip().lower()
+    if idioma not in ("pt", "en"):
+        raise ErroDeEntrada("Idioma inválido. Use 'pt' ou 'en'.")
+    limite = dados.get("limite", 10)
+    if isinstance(limite, bool) or not isinstance(limite, int) or not 1 <= limite <= 100:
+        raise ErroDeEntrada("O limite deve estar entre 1 e 100.")
+
+    conhecidos = {}
+    rotores = dados.get("rotores")
+    if rotores is not None:
+        if not isinstance(rotores, list) or len(rotores) != 3:
+            raise ErroDeEntrada("Informe exatamente três rotores principais ou deixe-os desconhecidos.")
+        rotores = tuple(nome_canonico(n, tabela_rotores, "Rotor") for n in rotores)
+        if len(set(rotores)) != 3 or any(r in ("Beta", "Gamma") for r in rotores):
+            raise ErroDeEntrada("Use três rotores principais diferentes entre I e VIII.")
+        conhecidos["rotores"] = rotores
+    aneis = dados.get("aneis")
+    if aneis is not None:
+        if not isinstance(aneis, list) or len(aneis) != 3:
+            raise ErroDeEntrada("Informe exatamente três anéis ou deixe-os desconhecidos.")
+        conhecidos["aneis"] = tuple(v + 1 for v in converter_aneis(aneis))
+    refletor = dados.get("refletor")
+    if refletor is not None:
+        refletor = nome_canonico(refletor, refletores, "Refletor")
+        validos = ("Bfino", "Cfino") if modelo == "M4" else ("B", "C")
+        if refletor not in validos:
+            raise ErroDeEntrada(f"O refletor {refletor} não é compatível com a {modelo}.")
+        conhecidos["refletor"] = refletor
+    grego = dados.get("rotor_grego")
+    if modelo == "M4" and grego is not None:
+        conhecidos["rotor_grego"] = nome_canonico(grego, {"beta": "Beta", "gamma": "Gamma"}, "Rotor grego")
+
+    plug_modo = texto_de(dados, "plugboard_modo", "vazio").strip().lower()
+    if plug_modo not in ("vazio", "conhecido", "desconhecido"):
+        raise ErroDeEntrada("plugboard_modo deve ser vazio, conhecido ou desconhecido.")
+    conhecidos["plugboard_modo"] = plug_modo
+    if plug_modo == "conhecido":
+        conexoes = texto_de(dados, "plugboard", "")
+        try:
+            Plugboard(conexoes)
+        except ValueError as erro:
+            raise ErroDeEntrada(str(erro)) from None
+        conhecidos["plugboard"] = conexoes.upper().strip()
+    if plug_modo == "desconhecido" and modo != "avancada":
+        raise ErroDeEntrada("Plugboard desconhecido só é suportado na criptoanálise avançada.")
+
+    if modo == "configurada":
+        faltando = [n for n in ("rotores", "aneis", "refletor") if n not in conhecidos]
+        if modelo == "M4" and "rotor_grego" not in conhecidos:
+            faltando.append("rotor_grego")
+        if faltando:
+            raise ErroDeEntrada(
+                "A busca configurada exige todos os parâmetros conhecidos. Faltando: "
+                + ", ".join(faltando) + ". Use a busca ampliada para descobri-los."
+            )
+
+    espaco = descrever_espaco(modelo, conhecidos, modo)
+    if modo != "configurada" and not espaco["dentro_do_orcamento"]:
+        descricao_busca = (
+            "A triagem inicial da busca avançada"
+            if modo == "avancada"
+            else "O escopo exaustivo"
+        )
+        raise ErroDeEntrada(
+            f"{descricao_busca} teria {espaco['configuracoes_exaustivas']:,} configurações, acima do "
+            f"limite de {espaco['orcamento']:,} desta aplicação. Declare mais parâmetros como conhecidos "
+            "ou escolha um escopo menor."
+            .replace(",", ".")
+        )
+    return {
+        "modo": modo, "texto_cifrado": mensagem, "modelo": modelo, "idioma": idioma,
+        "limite": limite, "conhecidos": conhecidos, "espaco": espaco,
+    }
+
+
+@app.route("/api/criptoanalise/escopo", methods=["POST"])
+def escopo_criptoanalise():
+    """Descreve o espaço de busca SEM executá-lo (dimensões, tamanho, tipo)."""
+    dados = request.get_json(silent=True)
+    if not isinstance(dados, dict):
+        return jsonify({"erro": "Envie um JSON válido."}), 400
+    dados = dict(dados)
+    dados.setdefault("mensagem", "AAAA")
+    try:
+        parametros = _parametros_investigacao(dados)
+        return jsonify(parametros["espaco"])
+    except ValueError as erro:
+        return jsonify({"erro": str(erro)}), 400
+
+
 @app.route("/api/criptoanalise", methods=["POST"])
 def criptoanalise():
     """Busca síncrona de posições iniciais (mantida por compatibilidade).
@@ -290,11 +425,17 @@ def criar_tarefa_criptoanalise():
         return jsonify({"erro": "Envie um JSON válido."}), 400
 
     try:
-        parametros = _parametros_criptoanalise(dados)
+        if "modo" in dados:
+            parametros = _parametros_investigacao(dados)
+        else:
+            parametros = _parametros_criptoanalise(dados)
     except ValueError as erro:
         return jsonify({"erro": str(erro)}), 400
 
-    return jsonify(gerenciador.iniciar(parametros))
+    try:
+        return jsonify(gerenciador.iniciar(parametros))
+    except ServidorOcupado as erro:
+        return jsonify({"erro": str(erro)}), 429
 
 
 @app.route("/api/criptoanalise/tarefas/<id_tarefa>", methods=["GET"])
@@ -313,6 +454,7 @@ def cancelar_tarefa_criptoanalise(id_tarefa):
     if estado is None:
         return jsonify({"erro": "Tarefa não encontrada."}), 404
     return jsonify(estado)
+
 
 
 @app.route("/api/percurso", methods=["POST"])
@@ -454,8 +596,8 @@ def verificar_desafio(id_missao):
         return jsonify({"erro": "Envie um JSON válido."}), 400
 
     modo = dados.get("modo", "especialista")
-    if modo not in MODOS:
-        return jsonify({"erro": f"Modo inválido. Use: {', '.join(MODOS)}."}), 400
+    if modo not in modos:
+        return jsonify({"erro": f"Modo inválido. Use: {', '.join(modos)}."}), 400
 
     try:
         resultado = verificar_resposta(id_missao, dados.get("resposta", ""), modo)
@@ -484,9 +626,9 @@ def progresso_desafios():
         "concluidas": concluidas,
         "pontos_total": sum(registro["pontos"] for registro in concluidas.values()),
         "conquistas": [
-            ACHIEVEMENTS[id_missao]["id"]
+            conquistas[id_missao]["id"]
             for id_missao in concluidas
-            if id_missao in ACHIEVEMENTS
+            if id_missao in conquistas
         ],
     })
 

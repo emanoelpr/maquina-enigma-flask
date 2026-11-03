@@ -242,111 +242,160 @@ conquistas = {'comboio-atlantico': {'descricao': 'Concluiu a missão Comboio no 
                       'id': 'conquista-radio-do-deserto',
                       'nome': 'Sinal decifrado'}}
 
-galeria = {'comboio-atlantico': [{'arquivo': None,
-                        'autoria': 'Não registrada pela busca',
-                        'credito_licenca': 'Acervo do National Museum of the United States Navy '
-                                           '(link de acervo; não acessível do ambiente de '
-                                           'desenvolvimento — confirme no site).',
-                        'data': 'Segunda Guerra Mundial (data exata não confirmada)',
-                        'fonte_url': 'https://www.history.navy.mil/content/history/museums/nmusn/explore/photography/wwii/wwii-atlantic/battle-of-the-atlantic.html',
-                        'local': 'Oceano Atlântico',
-                        'relacao': 'Representa os comboios que a mensagem da missão pretendia '
-                                   'informar.',
-                        'tipo': 'historica',
-                        'titulo_legenda': 'Navios mercantes em comboio no Atlântico, a formação '
-                                          'que reduzia as perdas para submarinos.'},
-                       {'arquivo': 'assets/galeria/m3-submarino.jpg',
-                        'autoria': 'Museum of Science and Industry, Chicago (instituição '
-                                   'identificada na busca; autoria individual não registrada)',
-                        'credito_licenca': 'Uso educacional não comercial; confira as condições no '
-                                           'site do museu.',
-                        'data': 'Fotografia atual do submarino de 1944',
-                        'fonte_url': 'https://www.msichicago.org/',
-                        'local': 'Museum of Science and Industry, Chicago, Estados Unidos',
-                        'relacao': 'Submarino preservado do tipo que usava a Enigma M4 no '
-                                   'Atlântico.',
-                        'tipo': 'atual',
-                        'titulo_legenda': 'U-505, submarino alemão capturado em 1944 e hoje '
-                                          'preservado no Museu de Ciência e Indústria de '
-                                          'Chicago.'}],
- 'estacao-de-escuta': [{'arquivo': None,
-                        'autoria': 'Não registrada pela busca',
-                        'credito_licenca': 'Consulte o acervo do Imperial War Museums para crédito '
-                                           'e condições de uso.',
-                        'data': 'Segunda Guerra Mundial (data exata não confirmada)',
-                        'fonte_url': None,
-                        'local': 'Não confirmado',
-                        'relacao': 'Representa o trabalho dos operadores de rádio e de escuta '
-                                   'retratado na missão.',
-                        'tipo': 'historica',
-                        'titulo_legenda': 'Operador de rádio em serviço durante a Segunda Guerra '
-                                          'Mundial.'},
-                       {'arquivo': None,
-                        'autoria': 'Não registrada pela busca',
-                        'credito_licenca': 'Consulte o acervo oficial do Bletchley Park Trust.',
-                        'data': 'Data não confirmada',
-                        'fonte_url': None,
-                        'local': 'Bletchley Park, Buckinghamshire, Reino Unido',
-                        'relacao': 'O local real onde as interceptações eram analisadas.',
-                        'tipo': 'atual',
-                        'titulo_legenda': 'Bletchley Park hoje: o sítio histórico é museu aberto à '
-                                          'visita.'}],
- 'primeira-leitura': [{'arquivo': 'assets/galeria/m1-maquina.jpg',
-                       'autoria': 'The National Museum of Computing (instituição identificada na '
-                                  'busca; autoria individual não registrada)',
-                       'credito_licenca': 'Uso educacional não comercial; condições completas no '
-                                          'site do museu.',
-                       'data': 'Fotografia atual (data exata não registrada pela busca)',
-                       'fonte_url': 'https://www.tnmoc.org/',
-                       'local': 'The National Museum of Computing, Bletchley Park, Reino Unido',
-                       'relacao': 'É a mesma máquina que você opera na simulação: teclado, '
-                                  'plugboard e painel de lâmpadas.',
-                       'tipo': 'atual',
-                       'titulo_legenda': 'Máquina Enigma em exposição no The National Museum of '
-                                         'Computing (Bletchley, Reino Unido).'},
-                      {'arquivo': None,
-                       'autoria': 'Não registrada pela busca',
-                       'credito_licenca': 'Consulte o acervo oficial do Bletchley Park Trust para '
-                                          'uso e créditos.',
-                       'data': 'Data não confirmada',
-                       'fonte_url': None,
-                       'local': 'Bletchley Park, Buckinghamshire, Reino Unido',
-                       'relacao': 'Local real onde mensagens interceptadas eram analisadas.',
-                       'tipo': 'atual',
-                       'titulo_legenda': 'A mansão de Bletchley Park, quartel-general da '
-                                         'decifração britânica na Segunda Guerra.'}],
- 'radio-do-deserto': [{'arquivo': None,
-                       'autoria': 'Não registrada pela busca',
-                       'credito_licenca': 'Consulte o acervo do Imperial War Museums para crédito '
-                                          'e condições de uso.',
-                       'data': 'Período da campanha (data exata não confirmada)',
-                       'fonte_url': None,
-                       'local': 'Deserto ocidental, Norte da África',
-                       'relacao': 'Ilustra as condições em que estações de rádio móveis operavam '
-                                  'com Enigma portátil.',
-                       'tipo': 'historica',
-                       'titulo_legenda': 'Blindados em operação no deserto ocidental, cenário das '
-                                         'comunicações móveis do Norte da África.'}]}
+galeria = {
+    "primeira-leitura": [
+        {
+            "arquivo": "assets/galeria/m1-enigma-em-uso.jpg",
+            "autoria": "Grupp / Bundesarchiv",
+            "credito_licenca": (
+                "Bundesarchiv, Bild 101I-241-2173-06 / Grupp / CC BY-SA 3.0 DE. "
+                "Licença: https://creativecommons.org/licenses/by-sa/3.0/de/deed.en"
+            ),
+            "data": "1943",
+            "fonte_url": "https://commons.wikimedia.org/wiki/File:Bundesarchiv_Bild_101I-241-2173-06,_Russland,_Verschlüsselungsgerät_Enigma.jpg",
+            "local": "Frente Oriental, território da então União Soviética (descrição do Bundesarchiv)",
+            "relacao": "Fotografia histórica de uma Enigma em uso operacional; não é a mensagem fictícia desta missão.",
+            "tipo": "historica",
+            "titulo_legenda": "Máquina Enigma em uso operacional, fotografada na Rússia em 1943.",
+        },
+        {
+            "arquivo": "assets/galeria/m1-enigma-museu.jpg",
+            "autoria": "Infrogmation of New Orleans",
+            "credito_licenca": "Infrogmation of New Orleans, GNU Free Documentation License 1.2 ou posterior; preserve a licença e o crédito.",
+            "data": "Setembro de 2007",
+            "fonte_url": "https://commons.wikimedia.org/wiki/File:DDayMuseumEnigmaMach.jpg",
+            "local": "The National WWII Museum, Nova Orleans, Estados Unidos",
+            "relacao": "Fotografia de uma máquina Enigma preservada em exposição; imagem atual de um artefato histórico.",
+            "tipo": "atual",
+            "titulo_legenda": "Máquina Enigma preservada em exposição no National WWII Museum.",
+        },
+    ],
+    "radio-do-deserto": [
+        {
+            "arquivo": "assets/galeria/m2-afrika-korps-comboio.jpg",
+            "autoria": "Forças armadas australianas / Australian War Memorial",
+            "credito_licenca": "Australian War Memorial, coleção P03091.004; imagem marcada como domínio público por expiração dos direitos autorais.",
+            "data": "1942",
+            "fonte_url": "https://commons.wikimedia.org/wiki/File:Afrika_Korps_vehicle_convoy_in_1942.jpg",
+            "local": "Deserto do Norte da África",
+            "relacao": "Mostra uma coluna de veículos do Afrika Korps no deserto, relacionada ao teatro de operações da missão.",
+            "tipo": "historica",
+            "titulo_legenda": "Coluna de veículos do Afrika Korps atravessando o deserto, 1942.",
+        },
+        {
+            "arquivo": "assets/galeria/m2-soldado-deserto.jpg",
+            "autoria": "Otto / Bundesarchiv",
+            "credito_licenca": "Bundesarchiv, Bild 101I-785-0285-14A / Otto / CC BY-SA 3.0 DE. Licença: https://creativecommons.org/licenses/by-sa/3.0/de/deed.en",
+            "data": "Abril de 1941",
+            "fonte_url": "https://commons.wikimedia.org/wiki/File:Bundesarchiv_Bild_101I-785-0285-14A,_Nordafrika,_Soldat_mit_Sandschutz.jpg",
+            "local": "Norte da África",
+            "relacao": "Fotografia de um soldado do Afrika Korps usando proteção contra areia e poeira; contexto visual da campanha no deserto.",
+            "tipo": "historica",
+            "titulo_legenda": "Soldado do Afrika Korps com proteção contra areia e poeira, Norte da África, 1941.",
+        },
+    ],
+    "comboio-atlantico": [
+        {
+            "arquivo": "assets/galeria/m3-escolta-atlantico.jpg",
+            "autoria": "H. A. Mason (Lt), fotógrafo oficial da Royal Navy / Imperial War Museums",
+            "credito_licenca": "Imperial War Museums, fotografia A 20973; marcada como domínio público por expiração do Crown Copyright britânico.",
+            "data": "Segunda Guerra Mundial, 1939–1945 (dia exato não confirmado)",
+            "fonte_url": "https://commons.wikimedia.org/wiki/File:The_Battle_of_the_Atlantic_1939-1945_A20973.jpg",
+            "local": "Atlântico Norte",
+            "relacao": "Mostra um navio de escolta navegando em mar agitado durante a proteção de um comboio.",
+            "tipo": "historica",
+            "titulo_legenda": "Navio de escolta atravessa mar agitado durante a Batalha do Atlântico.",
+        },
+        {
+            "arquivo": "assets/galeria/m3-comboio-tropas.jpg",
+            "autoria": "R. G. Coote (Lt), fotógrafo oficial da Royal Navy / Imperial War Museums",
+            "credito_licenca": "Imperial War Museums, fotografia A 12883; marcada como domínio público por expiração do Crown Copyright britânico.",
+            "data": "Segunda Guerra Mundial, 1939–1945 (dia exato não confirmado)",
+            "fonte_url": "https://commons.wikimedia.org/wiki/File:The_Battle_of_the_Atlantic_1939-1945_A12883.jpg",
+            "local": "Atlântico; comboio com destino ao Norte da África",
+            "relacao": "Registra um comboio de tropas em rota para o Norte da África, ilustrando a logística marítima da guerra.",
+            "tipo": "historica",
+            "titulo_legenda": "Comboio de tropas a caminho do Norte da África durante a Segunda Guerra Mundial.",
+        },
+    ],
+    "estacao-de-escuta": [
+        {
+            "arquivo": "assets/galeria/m4-bombe-1945.jpg",
+            "autoria": "Autor desconhecido; fotografia governamental de GC&CS",
+            "credito_licenca": "Fotografia de 1945 do Government Code and Cypher School; Wikimedia Commons indica domínio público sob as regras de Crown Copyright do Reino Unido.",
+            "data": "1945",
+            "fonte_url": "https://commons.wikimedia.org/wiki/File:Wartime_picture_of_a_Bletchley_Park_Bombe.jpg",
+            "local": "Bletchley Park, Buckinghamshire, Reino Unido",
+            "relacao": "Mostra uma Bombe usada no trabalho de criptoanálise; não é uma máquina Enigma nem uma estação de interceptação de rádio.",
+            "tipo": "historica",
+            "titulo_legenda": "Fotografia de época de uma Bombe em Bletchley Park, 1945.",
+        },
+        {
+            "arquivo": "assets/galeria/m4-bletchley-park-atual.jpg",
+            "autoria": "Matt Crypto",
+            "credito_licenca": "Fotografia publicada por Matt Crypto em domínio público (CC0 / dedicação ao domínio público, conforme a página do arquivo).",
+            "data": "2005",
+            "fonte_url": "https://commons.wikimedia.org/wiki/File:Bletchley_Park.jpg",
+            "local": "Bletchley Park, Buckinghamshire, Reino Unido",
+            "relacao": "Fotografia atual do edifício histórico onde funcionou o centro britânico de criptoanálise.",
+            "tipo": "atual",
+            "titulo_legenda": "A mansão de Bletchley Park em fotografia de 2005.",
+        },
+    ],
+}
 
-dicas = {'comboio-atlantico': ['Esta é a M4: rotor grego Beta, rotores VI-II-VIII e refletor B fino '
-                       '(Bfino).',
-                       'Os anéis são 1-8-14-21 — na interface informe os quatro valores; o '
-                       'primeiro pertence ao rotor grego.',
-                       'As posições iniciais são S-D-T-C (a primeira é a do rotor grego).'],
- 'estacao-de-escuta': ['O modelo é M3 com rotores I-III-IV e refletor B.',
-                       'As posições iniciais são K-E-Z e os anéis 3-1-9. Falta a camada extra.',
-                       'O plugboard tem três conexões: AV BS CG.'],
- 'primeira-leitura': ['Abra a Máquina & cifra. Escolha o modelo M3 e os rotores I-II-III, na '
-                      'ordem: esquerdo I, central II, direito III.',
-                      'Confira o refletor B e deixe os anéis em 1-1-1. Falta só um detalhe: as '
-                      'posições iniciais das três janelas.',
-                      'As posições iniciais são A-A-A. Digite a mensagem cifrada na máquina e cole '
-                      'a saída na resposta.'],
- 'radio-do-deserto': ['O modelo é M3 e a ordem dos rotores importa: esquerdo IV, central II, '
-                      'direito V, com o refletor C.',
-                      'Os anéis são 1-6-14 e o plugboard está vazio. As posições iniciais variam '
-                      'de H a M nas três janelas.',
-                      'As posições exatas são H-C-L. Prepare a máquina e decifre.']}
+
+dicas = {
+    # Pistas em estilo narrativo: personagens genéricos e fictícios
+    # (operador de rádio, técnico, analista) relatam a configuração real
+    # de cada missão, revelando-a progressivamente. Nenhum dado técnico
+    # foi alterado: cada pista permanece fiel à configuração validada.
+    'primeira-leitura': [
+        'O operador de rádio se aproxima e fala em voz baixa: "Pelo padrão '
+        'do equipamento, esta mensagem saiu de uma Enigma M3. Os rotores na '
+        'máquina são, da esquerda para a direita, I, II e III."',
+        'O técnico aponta para o painel: "Refletor B e anéis 1-1-1 — nada '
+        'alterado nesse setor. Falta o detalhe que muda tudo: as posições '
+        'iniciais das três janelas."',
+        'Uma anotação chega à mesa: "As posições são A-A-A. Monte a máquina, '
+        'digite a mensagem cifrada e cole aqui o que as lâmpadas '
+        'soletrarem."',
+    ],
+    'radio-do-deserto': [
+        'O sargento de sinais examina a fita do rádio: "É uma M3, sem '
+        'dúvida. E hoje a ordem dos rotores foi trocada: IV à esquerda, II '
+        'no centro, V à direita. O refletor é o C."',
+        'O técnico aponta para o painel: "Anéis 1-6-14 e o plugboard está '
+        'livre — nenhuma conexão hoje. Só não sabemos ainda as posições das '
+        'janelas."',
+        'Um colega da equipe desliza um bilhete sobre a mesa: "As posições '
+        'iniciais são H-C-L. Prepare a máquina e devolva esta mensagem ao '
+        'nosso idioma."',
+    ],
+    'estacao-de-escuta': [
+        'A operadora da estação de escuta sussurra ao telefone: "Confirmado: '
+        'é uma M3 com os rotores I, III e IV, nessa ordem, e refletor B. O '
+        'resto é com você."',
+        'O analista aponta para a margem da folha de chaves: "Posições K-E-Z '
+        'e anéis 3-1-9. Mas atenção: há algo a mais entre o teclado e os '
+        'rotores."',
+        'Uma nova anotação chega à mesa: "Há três conexões no plugboard — '
+        'AV, BS e CG. Pares de letras trocam de lugar antes mesmo de o '
+        'sinal entrar nos rotores."',
+    ],
+    'comboio-atlantico': [
+        'O analista naval aponta a fotografia do submarino: "Esta é a M4 de '
+        'quatro rotores: o grego Beta à esquerda, depois VI, II e VIII. E o '
+        'refletor é o fino, o Bfino."',
+        'O técnico aponta para o painel: "Os anéis são 1-8-14-21 — na '
+        'interface, informe os quatro valores: o primeiro pertence ao rotor '
+        'grego."',
+        'Uma cópia interceptada chega à mesa: "As posições iniciais são '
+        'S-D-T-C — a primeira é a do rotor grego. Ele não avança durante a '
+        'mensagem; não se esqueça disso."',
+    ],
+}
+
 
 
 # ------------------------------------------------------------------
@@ -486,6 +535,14 @@ def conquistas_catalogo():
             "nome": info["nome"],
             "descricao": info["descricao"],
             "icone": info["icone"],
+            "imagem": next(
+                (
+                    item["arquivo"]
+                    for item in galeria.get(id_missao, [])
+                    if item.get("arquivo")
+                ),
+                None,
+            ),
             "missao": id_missao,
         }
         for id_missao, info in conquistas.items()
@@ -497,8 +554,14 @@ def obter_dicas(id_missao, ate_nivel):
     if id_missao not in missoes:
         raise ValueError("Missão não encontrada.")
     dicas_missao = dicas[id_missao]
-    if isinstance(ate_nivel, bool) or not isinstance(ate_nivel, int) or not 1 <= ate_nivel <= len(dicas):
-        raise ValueError(f"O nível da dica deve ser um número entre 1 e {len(dicas)}.")
+    if (
+        isinstance(ate_nivel, bool)
+        or not isinstance(ate_nivel, int)
+        or not 1 <= ate_nivel <= len(dicas_missao)
+    ):
+        raise ValueError(
+            f"O nível da dica deve ser um número entre 1 e {len(dicas_missao)}."
+        )
     return dicas_missao[:ate_nivel]
 
 

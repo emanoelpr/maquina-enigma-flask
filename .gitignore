@@ -1,0 +1,41 @@
+# Python: bytecode e caches
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+
+# pytest e ferramentas de cobertura
+.pytest_cache/
+**/.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.cache/
+
+# Ambientes virtuais
+.venv/
+venv/
+env/
+ENV/
+
+# Arquivos locais e segredos
+.env
+.env.*
+!.env.example
+*.log
+
+# Editores e sistema operacional
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Arquivos temporários
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo

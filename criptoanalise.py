@@ -226,12 +226,13 @@ def atacar_posicoes(
     rotor_grego="Beta",
     progresso=None,
     cancelado=None,
+    plugboard="",
 ):
-    """Testa posições iniciais; mantém fixos rotores, anéis e refletor recebidos.
+    """Testa posições iniciais; mantém fixos os demais parâmetros recebidos.
 
     Na M3, busca as 26³ posições dos três rotores principais.
     Na M4, busca também a posição inicial do rotor grego: 26⁴ combinações.
-    O plugboard é mantido vazio nesta versão da busca.
+    O plugboard informado é mantido fixo durante a busca.
 
     Parâmetros opcionais:
     - progresso: função chamada como progresso(feitas, total) durante a
@@ -267,6 +268,9 @@ def atacar_posicoes(
         raise ValueError("Na M4, selecione o rotor grego Beta ou Gamma.")
     if isinstance(limite, bool) or not isinstance(limite, int) or not 1 <= limite <= 100:
         raise ValueError("O limite deve ser um inteiro entre 1 e 100.")
+    if not isinstance(plugboard, str):
+        raise ValueError("O plugboard deve ser informado como texto.")
+    plugboard = plugboard.upper().strip()
 
     inicio = perf_counter()
     aneis_motor = [anel - 1 for anel in aneis]
@@ -287,7 +291,7 @@ def atacar_posicoes(
         posicoes_rotores=[0] * len(nomes_rotores),
         configuracoes_anel=aneis_motor,
         nome_refletor=refletor,
-        conexoes_plugboard="",
+        conexoes_plugboard=plugboard,
     )
     trecho = texto[:letras_para_pontuar]
     trecho_numeros = [ord(letra) - ord("A") for letra in trecho]
@@ -362,7 +366,7 @@ def atacar_posicoes(
             posicoes_rotores=posicoes_motor,
             configuracoes_anel=aneis_motor,
             nome_refletor=refletor,
-            conexoes_plugboard="",
+            conexoes_plugboard=plugboard,
         )
         texto_decifrado = maquina_candidata.cifrar_texto(texto)
         candidato = {
@@ -371,6 +375,7 @@ def atacar_posicoes(
             "rotores": list(rotores),
             "aneis": list(aneis),
             "refletor": refletor,
+            "plugboard": plugboard or "nenhum",
             "idioma": idioma,
             "modelo": modelo,
             "pontuacao": pontuar_candidato(texto_decifrado, idioma),

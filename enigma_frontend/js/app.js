@@ -105,6 +105,9 @@
         $("#sidebar").classList.remove("open");
 
         renderProfile();
+        if (name === "profile") {
+            void carregarProgresso();
+        }
 
         window.scrollTo({
             top: 0,
@@ -658,7 +661,7 @@
         linhas.forEach((linha) => linha.classList.remove("is-done"));
 
         for (const linha of linhas) {
-            await new Promise((resolver) => setTimeout(resolver, 200));
+            await new Promise((resolver) => setTimeout(resolver, 600));
             linha.classList.add("is-done");
         }
     }
@@ -683,7 +686,7 @@
         $("#traceStatusTag").textContent = "PROCESSANDO";
 
         try {
-            const resposta = await fetch(`${API_BASE}/api/percurso`, {
+            const resposta = await apiFetch(`${API_BASE}/api/percurso`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(corpo)
@@ -753,26 +756,173 @@
 
     // ============================================================
     // CRIPTOANÁLISE REAL PELA API PYTHON
+    // Três modos: configurada (todas as posições para uma configuração
+    // informada), ampliada (enumeração exaustiva do que o usuário declarou
+    // desconhecido) e avançada (heurística para anéis e plugboard).
     // ============================================================
 
     const API_BASE = "http://127.0.0.1:5000";
 
-    function renderAnalysisResults(resultado) {
-        const candidatos = Array.isArray(resultado.candidatos)
-            ? resultado.candidatos
-            : [];
-        const painel = $("#analysisResult");
+    const AJUDA_MODOS = {
+        configurada: "Busca configurada: você informa rotores, anéis, refletor e plugboard; o sistema testa TODAS as posições iniciais (17.576 na M3; 456.976 na M4, com a posição grega). Exaustiva.",
+        ampliada: "Busca ampliada: investiga automaticamente ordem dos rotores (336 permutações de I–VIII), refletores compatíveis, rotor grego e TODAS as posições — mantendo fixo só o que você marcar como conhecido. Exaustiva no escopo declarado; espaços acima do limite são recusados.",
+        avancada: "Criptoanálise avançada: anéis e plugboard desconhecidos por busca HEURÍSTICA (triagem exaustiva + refinamento dos melhores candidatos + subida de encosta no plugboard). Não enumera todas as chaves e pode não achar a correta; precisa de textos longos (100+ letras) com plugboard desconhecido."
+    };
+    const ROTORES_UI = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"];
 
+    function formatarNumero(valor) {
+        return Number(valor || 0).toLocaleString("pt-BR");
+    }
+
+    function preencherSeletoresAnalise() {
+        ["#anRotor1", "#anRotor2", "#anRotor3"].forEach((seletor, indice) => {
+            $(seletor).innerHTML = ROTORES_UI.map((r) => `<option>${r}</option>`).join("");
+            $(seletor).value = ROTORES_UI[indice];
+        });
+        atualizarRefletoresAnalise();
+    }
+
+    function atualizarRefletoresAnalise() {
+        const m4 = $("#analysisModel").value === "M4";
+        const opcoes = m4 ? ["Bfino", "Cfino"] : ["B", "C"];
+        $("#anReflector").innerHTML = opcoes.map((r) => `<option value="${r}">${r === "Bfino" ? "B fino" : r === "Cfino" ? "C fino" : r}</option>`).join("");
+        $$(".m4-only").forEach((linha) => linha.classList.toggle("hidden", !m4));
+    }
+
+    function atualizarControlesAnalise() {
+        const modo = $("#analysisMode").value;
+        $("#analysisModeHelp").textContent = AJUDA_MODOS[modo];
+        const configurada = modo === "configurada";
+        // Na busca configurada todos os parâmetros são obrigatórios.
+        ["#knowRotors", "#knowReflector", "#knowGreek", "#knowRings"].forEach((s) => {
+            if (configurada) { $(s).checked = true; }
+            $(s).disabled = configurada;
+        });
+        const plugDesconhecido = $("#anPlugMode").querySelector('option[value="desconhecido"]');
+        plugDesconhecido.disabled = modo !== "avancada";
+        if (modo !== "avancada" && $("#anPlugMode").value === "desconhecido") {
+            $("#anPlugMode").value = "vazio";
+        }
+        [["#knowRotors", ["#anRotor1", "#anRotor2", "#anRotor3"]], ["#knowReflector", ["#anReflector"]],
+         ["#knowGreek", ["#anGreek"]], ["#knowRings", ["#anRings"]]].forEach(([caixa, campos]) => {
+            campos.forEach((c) => { $(c).disabled = !$(caixa).checked; });
+        });
+        $("#anPlug").classList.toggle("hidden", $("#anPlugMode").value !== "conhecido");
+        atualizarEscopo();
+    }
+
+    function montarCorpoAnalise() {
+        const modelo = $("#analysisModel").value;
+        const corpo = {
+            modo: $("#analysisMode").value,
+            modelo,
+            mensagem: letters($("#cipherInput").value),
+            idioma: $("#analysisLanguage").value,
+            limite: 5,
+            plugboard_modo: $("#anPlugMode").value
+        };
+        if ($("#knowRotors").checked) {
+            corpo.rotores = [$("#anRotor1").value, $("#anRotor2").value, $("#anRotor3").value];
+        }
+        if ($("#knowReflector").checked) { corpo.refletor = $("#anReflector").value; }
+        if (modelo === "M4" && $("#knowGreek").checked) { corpo.rotor_grego = $("#anGreek").value; }
+        if ($("#knowRings").checked) {
+            corpo.aneis = $("#anRings").value.split(/[^0-9]+/).filter(Boolean).map(Number);
+        }
+        if (corpo.plugboard_modo === "conhecido") { corpo.plugboard = $("#anPlug").value; }
+        return corpo;
+    }
+
+    let temporizadorEscopo = null;
+    function atualizarEscopo() {
+        clearTimeout(temporizadorEscopo);
+        temporizadorEscopo = setTimeout(async () => {
+            const caixa = $("#analysisScope");
+            try {
+                const corpo = montarCorpoAnalise();
+                corpo.mensagem = corpo.mensagem || "AAAA";
+                const resposta = await fetch(`${API_BASE}/api/criptoanalise/escopo`, {
+                    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(corpo)
+                });
+                const dados = await resposta.json();
+                if (!resposta.ok) {
+                    caixa.innerHTML = `<b>ESCOPO</b><p class="scope-erro"></p>`;
+                    caixa.querySelector("p").textContent = dados.erro;
+                    $("#startAnalysis").disabled = true;
+                    return;
+                }
+                $("#startAnalysis").disabled = false;
+                const linhas = dados.dimensoes.map((d) => {
+                    const tamanho = d.tamanho === null ? "—" : formatarNumero(d.tamanho);
+                    return `<li><span>${safe(d.nome)}</span><em class="tipo-${d.tipo === "heurística" ? "heur" : d.tipo}">${tamanho} · ${d.tipo}</em></li>`;
+                }).join("");
+                caixa.innerHTML = `<b>ESCOPO DA BUSCA</b><ul>${linhas}</ul>
+                    <p>${dados.heuristica
+                        ? `Triagem exaustiva de ${formatarNumero(dados.configuracoes_exaustivas)} configurações, seguida de refinamento HEURÍSTICO.`
+                        : `${formatarNumero(dados.configuracoes_exaustivas)} configurações avaliadas exaustivamente.`}</p>`;
+            } catch (erro) {
+                caixa.innerHTML = `<b>ESCOPO</b><p>Não foi possível calcular o escopo — verifique a API.</p>`;
+            }
+        }, 250);
+    }
+
+    function textoConfiguracao(candidato) {
+        const partes = [`${candidato.modelo || "—"}`];
+        if (candidato.rotor_grego) {
+            partes.push(`Grego ${candidato.rotor_grego} @ ${candidato.posicao_grega || "—"}`);
+        }
+        partes.push(`Rotores ${(candidato.rotores || []).join("–")}`);
+        partes.push(`Posições ${candidato.posicoes || "—"}`);
+        partes.push(`Anéis ${(candidato.aneis || []).join("–")}`);
+        partes.push(`Refletor ${candidato.refletor || "—"}`);
+        partes.push(`Plugboard ${candidato.plugboard ? candidato.plugboard + (candidato.plugboard_recuperado ? " (recuperado)" : "") : "vazio"}`);
+        return partes.join(" · ");
+    }
+
+    function renderCandidatos(painel, candidatos, resultado) {
+        candidatos.forEach((candidato, indice) => {
+            const item = document.createElement("div");
+            item.className = "candidate";
+            const pontuacao = Number(candidato.pontuacao || 0);
+            item.innerHTML = `
+                <b>${String(indice + 1).padStart(2, "0")}</b>
+                <div class="candidate-content">
+                    <strong class="candidate-text"></strong>
+                    <small class="candidate-config"></small>
+                    <small class="candidate-method"></small>
+                </div>
+                <em>índice ${pontuacao.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</em>
+            `;
+            item.querySelector(".candidate-text").textContent = candidato.texto || "(sem texto)";
+            item.querySelector(".candidate-config").textContent = textoConfiguracao(candidato);
+            const metodo = candidato.metodo === "heuristica" ? "Heurística" : "Exaustiva";
+            item.querySelector(".candidate-method").textContent =
+                `Método: ${metodo}${candidato.verificado_no_motor ? " · verificado no motor real" : ""} · Idioma ${candidato.idioma || resultado.idioma || "—"}`;
+            item.title = candidato.escopo || "";
+            painel.append(item);
+        });
+    }
+
+    function renderAnalysisResults(resultado) {
+        const candidatos = Array.isArray(resultado.candidatos) ? resultado.candidatos : [];
+        const painel = $("#analysisResult");
         painel.innerHTML = "";
 
         const metricas = document.createElement("div");
         metricas.className = "metric-grid";
         metricas.innerHTML = `
             <div><small>CANDIDATOS</small><b>${candidatos.length}</b></div>
-            <div><small>TEMPO</small><b>${Number(resultado.tempo_segundos || 0).toLocaleString("pt-BR", { maximumFractionDigits: 2 })} s</b></div>
-            <div><small>COMBINAÇÕES</small><b>${Number(resultado.combinacoes_testadas || 0).toLocaleString("pt-BR")}</b></div>
+            <div><small>TEMPO</small><b>${Number(resultado.tempo_segundos || 0).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} s</b></div>
+            <div><small>CONFIGURAÇÕES AVALIADAS</small><b>${formatarNumero(resultado.combinacoes_testadas)}</b></div>
         `;
         painel.append(metricas);
+
+        const metodo = document.createElement("p");
+        metodo.className = "muted tiny";
+        const nomeModo = { configurada: "Busca configurada", ampliada: "Busca ampliada", avancada: "Criptoanálise avançada" }[resultado.modo] || "Busca configurada";
+        metodo.textContent = `${nomeModo} · método ${resultado.metodo === "heuristica" ? "HEURÍSTICO (não exaustivo)" : "exaustivo no escopo declarado"}` +
+            (resultado.cobertura_completa ? " · escopo coberto integralmente." : ".");
+        painel.append(metodo);
 
         if (!candidatos.length) {
             const vazio = document.createElement("p");
@@ -781,47 +931,27 @@
             painel.append(vazio);
             return;
         }
-
-        candidatos.forEach((candidato, indice) => {
-            const item = document.createElement("div");
-            item.className = "candidate";
-            const rotores = Array.isArray(candidato.rotores)
-                ? candidato.rotores.join("–")
-                : "—";
-            const aneis = Array.isArray(candidato.aneis)
-                ? candidato.aneis.join("–")
-                : "—";
-            const pontuacao = Number(candidato.pontuacao || 0);
-
-            item.innerHTML = `
-                <b>${String(indice + 1).padStart(2, "0")}</b>
-                <div class="candidate-content">
-                    <strong class="candidate-text"></strong>
-                    <small></small>
-                    <small class="candidate-config"></small>
-                </div>
-                <em>índice ${pontuacao.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</em>
-            `;
-            item.querySelector(".candidate-text").textContent = candidato.texto || "(sem texto)";
-            item.querySelector(".candidate-content small").textContent =
-                `Posições ${candidato.posicoes || "—"} · Rotores ${rotores}`;
-            const detalheGrego = candidato.rotor_grego
-                ? ` · Rotor grego ${candidato.rotor_grego} · Posição grega ${candidato.posicao_grega || "—"}`
-                : "";
-            item.querySelector(".candidate-config").textContent =
-                `Anéis ${aneis} · Refletor ${candidato.refletor || "—"}${detalheGrego} · Idioma ${candidato.idioma || resultado.idioma || "—"}`;
-            painel.append(item);
-        });
+        renderCandidatos(painel, candidatos, resultado);
 
         const nota = document.createElement("p");
         nota.className = "muted tiny";
-        nota.textContent = "A pontuação é uma estimativa linguística. O primeiro candidato é o mais bem classificado pela busca, mas precisa ser avaliado pelo contexto.";
+        nota.textContent = resultado.aviso ||
+            "A pontuação é uma estimativa linguística. O melhor candidato estatístico não é necessariamente a mensagem correta, principalmente em textos curtos.";
         painel.append(nota);
     }
 
     const analysisModel = $("#analysisModel");
-
     let tarefaCriptoEmAndamento = null;
+
+    preencherSeletoresAnalise();
+    atualizarControlesAnalise();
+    ["#analysisMode", "#knowRotors", "#knowReflector", "#knowGreek", "#knowRings", "#anPlugMode",
+     "#anRotor1", "#anRotor2", "#anRotor3", "#anReflector", "#anGreek"].forEach((s) => {
+        $(s).addEventListener("change", atualizarControlesAnalise);
+    });
+    analysisModel.addEventListener("change", () => { atualizarRefletoresAnalise(); atualizarControlesAnalise(); });
+    $("#anRings").addEventListener("input", atualizarEscopo);
+    $("#anPlug").addEventListener("input", atualizarEscopo);
 
     function finalizarAnimacaoAnalise() {
         $("#lupaAnalise").classList.remove("lupa-analisando");
@@ -829,22 +959,32 @@
         tarefaCriptoEmAndamento = null;
     }
 
-    $("#startAnalysis").addEventListener("click", async () => {
-        const mensagem = letters($("#cipherInput").value);
+    function descreverProgresso(estado) {
+        const tempo = `${Number(estado.tempo_decorrido || 0).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} s`;
+        if (estado.porcentagem === undefined) {
+            return `EXECUTANDO · ${formatarNumero(estado.combinacoes_testadas)} configurações · ${tempo}`;
+        }
+        const etapa = `ETAPA ${estado.fase_numero}/${estado.total_fases} · ${String(estado.fase || "").toUpperCase()}`;
+        if (estado.tipo_progresso === "real" && estado.porcentagem !== null) {
+            return `${etapa} · ${Number(estado.porcentagem).toLocaleString("pt-BR", { maximumFractionDigits: 1 })}% · ` +
+                `${formatarNumero(estado.combinacoes_testadas)} / ${formatarNumero(estado.total_combinacoes)} configurações · ${tempo}`;
+        }
+        const daEtapa = estado.fase_total
+            ? ` · ${formatarNumero(estado.fase_feitas)} / ${formatarNumero(estado.fase_total)} nesta etapa`
+            : "";
+        return `${etapa}${daEtapa} · ${formatarNumero(estado.combinacoes_testadas)} avaliações (progresso por etapa) · ${tempo}`;
+    }
 
-        if (mensagem.length < 4) {
+    $("#startAnalysis").addEventListener("click", async () => {
+        const corpo = montarCorpoAnalise();
+
+        if (corpo.mensagem.length < 4) {
             toast("Insira pelo menos quatro letras no texto cifrado.");
             return;
         }
 
-        const modelo = analysisModel.value;
+        const modelo = corpo.modelo;
         const botao = $("#startAnalysis");
-        const corpo = {
-            modelo,
-            mensagem,
-            idioma: $("#analysisLanguage").value,
-            limite: 5
-        };
 
         $("#analysisEmpty").classList.add("hidden");
         $("#analysisResult").classList.add("hidden");
@@ -857,9 +997,7 @@
         carregando.id = "analysisLoading";
         carregando.className = "empty";
         carregando.setAttribute("role", "status");
-        carregando.innerHTML = modelo === "M4"
-            ? "<b>⌕</b><strong>Testando posições da Enigma M4</strong><p>O progresso exibido reflete as combinações realmente testadas pelo backend Python.</p>"
-            : "<b>⌕</b><strong>Testando posições da Enigma M3</strong><p>O progresso exibido reflete as combinações realmente testadas pelo backend Python.</p>";
+        carregando.innerHTML = `<b>⌕</b><strong>Investigando a Enigma ${modelo}</strong><p class="progresso-detalhe">O progresso exibido reflete o trabalho realmente executado pelo backend Python.</p><div class="parciais"></div>`;
         $("#analysisResult").before(carregando);
 
         try {
@@ -875,24 +1013,21 @@
             tarefaCriptoEmAndamento = criacao.id_tarefa;
 
             while (true) {
-                await new Promise((resolver) => setTimeout(resolver, 400));
+                await new Promise((resolver) => setTimeout(resolver, 500));
 
-                const consulta = await fetch(
-                    `${API_BASE}/api/criptoanalise/tarefas/${tarefaCriptoEmAndamento}`
-                );
+                const consulta = await fetch(`${API_BASE}/api/criptoanalise/tarefas/${tarefaCriptoEmAndamento}`);
                 const estado = await consulta.json();
                 if (!consulta.ok) {
                     throw new Error(estado.erro || "Falha ao consultar a tarefa.");
                 }
 
                 if (estado.estado === "executando") {
-                    const porcentagem = Number(estado.porcentagem || 0)
-                        .toLocaleString("pt-BR", { maximumFractionDigits: 1 });
-                    $("#analysisStatus").textContent =
-                        `EXECUTANDO · ${porcentagem}% · ` +
-                        `${Number(estado.combinacoes_testadas).toLocaleString("pt-BR")} / ` +
-                        `${Number(estado.total_combinacoes).toLocaleString("pt-BR")} combinações · ` +
-                        `${Number(estado.tempo_decorrido || 0).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} s`;
+                    $("#analysisStatus").textContent = descreverProgresso(estado);
+                    const caixaParciais = carregando.querySelector(".parciais");
+                    if (Array.isArray(estado.parciais) && estado.parciais.length) {
+                        caixaParciais.innerHTML = "<small>MELHORES ATÉ AGORA (verificados no motor; busca em andamento)</small>";
+                        renderCandidatos(caixaParciais, estado.parciais.slice(0, 3), estado);
+                    }
                     continue;
                 }
 
@@ -901,7 +1036,7 @@
                     renderAnalysisResults(estado.resultado);
                     $("#analysisResult").classList.remove("hidden");
                     $("#analysisStatus").textContent = "BUSCA CONCLUÍDA · " + modelo;
-                    activity(`Criptoanálise ${modelo} concluída: ${Number(estado.resultado.combinacoes_testadas || 0).toLocaleString("pt-BR")} combinações`);
+                    activity(`Criptoanálise ${modelo} concluída: ${formatarNumero(estado.resultado.combinacoes_testadas)} configurações`);
                     toast(`Criptoanálise ${modelo} concluída pelo motor Python.`);
                     break;
                 }
@@ -912,7 +1047,7 @@
                     $("#analysisEmpty").classList.remove("hidden");
                     $("#analysisEmpty").querySelector("strong").textContent = "Análise cancelada.";
                     $("#analysisEmpty").querySelector("p").textContent =
-                        "A busca foi interrompida no backend e nenhum resultado parcial foi apresentado.";
+                        `A busca foi interrompida no backend após ${formatarNumero(estado.combinacoes_testadas)} configurações avaliadas; as demais NÃO foram examinadas.`;
                     toast("Criptoanálise cancelada.");
                     break;
                 }
@@ -938,12 +1073,8 @@
         if (!tarefaCriptoEmAndamento) {
             return;
         }
-
         try {
-            await fetch(
-                `${API_BASE}/api/criptoanalise/tarefas/${tarefaCriptoEmAndamento}/cancelar`,
-                { method: "POST" }
-            );
+            await fetch(`${API_BASE}/api/criptoanalise/tarefas/${tarefaCriptoEmAndamento}/cancelar`, { method: "POST" });
             toast("Cancelamento solicitado. Aguardando o backend confirmar...");
         } catch (erro) {
             console.error("Erro ao cancelar a criptoanálise:", erro);
@@ -953,14 +1084,22 @@
 
     // ============================================================
     // DESAFIOS HISTÓRICOS — JORNADA DE INVESTIGAÇÃO
-    // Etapa A (contexto) → B (preparação e modo) → C (resolução) →
-    // D (conclusão com conquista e galeria). O catálogo, a pontuação
-    // por modo e o desbloqueio de conquistas são controlados pelo
-    // backend (sessão assinada); a validação usa o motor Enigma real.
+    // Etapa A (conheça a missão) → B (preparação e modo) →
+    // C (resolução) → D (conclusão com conquista e galeria).
+    // Cada etapa só fica visível quando a anterior é concluída;
+    // voltar nunca apaga configuração, modo escolhido ou progresso.
+    // Catálogo, pontuação por modo e conquistas ficam no backend
+    // (sessão assinada); a validação usa o motor Enigma real.
     // ============================================================
 
     let challenges = {};
     const estadoDesafios = {};
+    const ETAPAS = [
+        { numero: 1, rotulo: "Conheça a missão" },
+        { numero: 2, rotulo: "Prepare-se" },
+        { numero: 3, rotulo: "Resolução" },
+        { numero: 4, rotulo: "Conclusão" },
+    ];
     const MODOS_INFO = {
         guiado: {
             rotulo: "Guiado · iniciante",
@@ -968,11 +1107,11 @@
         },
         investigacao: {
             rotulo: "Investigação · intermediário",
-            descricao: "Dicas passo a passo ensinam rotores, anéis e plugboard; você configura sozinho com apoio.",
+            descricao: "Pistas passo a passo ensinam rotores, anéis e plugboard; você configura sozinho com apoio.",
         },
         especialista: {
             rotulo: "Especialista · avançado",
-            descricao: "Configuração manual e dicas mínimas. A criptoanálise é opcional. Vale a pontuação máxima.",
+            descricao: "Configuração manual e uma única orientação. A criptoanálise é opcional. Vale a pontuação máxima.",
         },
     };
     let conquistasDesbloqueadas = [];
@@ -985,9 +1124,27 @@
         return MODOS_INFO[chave] ? MODOS_INFO[chave].rotulo : chave;
     }
 
+    function indicarEtapa(numero) {
+        const info = ETAPAS[numero - 1];
+        const painel = $("#challengeSteps");
+        if (painel && info) {
+            painel.textContent = `ETAPA ${info.numero} DE 4 · ${info.rotulo.toUpperCase()}`;
+        }
+    }
+
+    function mostrarEtapa(numero) {
+        "ABCD".split("").forEach((letra, indice) => {
+            const secao = $(`#challengeStage${letra}`);
+            if (secao) {
+                secao.classList.toggle("hidden", indice + 1 !== numero);
+            }
+        });
+        indicarEtapa(numero);
+    }
+
     async function carregarProgresso() {
         try {
-            const resposta = await fetch(`${API_BASE}/api/desafios/progresso`);
+            const resposta = await apiFetch(`${API_BASE}/api/desafios/progresso`);
             const dados = await resposta.json();
 
             if (!resposta.ok) {
@@ -995,13 +1152,13 @@
             }
 
             Object.keys(dados.concluidas || {}).forEach((id) => {
-                estadoDesafios[id] = {
+                estadoDesafios[id] = Object.assign(estadoDesafios[id] || {}, {
                     concluida: true,
                     modo: dados.concluidas[id].modo,
                     pontos: dados.concluidas[id].pontos,
-                    dicasLiberadas: 0,
-                    dicas: []
-                };
+                    dicasLiberadas: estadoDesafios[id] ? estadoDesafios[id].dicasLiberadas : 0,
+                    dicas: estadoDesafios[id] ? estadoDesafios[id].dicas : [],
+                });
             });
 
             points = Number(dados.pontos_total || 0);
@@ -1024,17 +1181,17 @@
             const missao = challenges[id];
             const estado = estadoDesafios[id] || {};
 
-            const cartao = document.createElement("article");
-            cartao.className = "challenge-card";
-
             const estadoTexto = estado.concluida
                 ? "CONCLUÍDA · " + rotuloModo(estado.modo).toUpperCase()
                 : (estado.dicasLiberadas
-                    ? `EM ANDAMENTO · ${estado.dicasLiberadas}/${missao.total_dicas} DICAS`
+                    ? `EM ANDAMENTO · ${estado.dicasLiberadas}/${missao.total_dicas} PISTAS`
                     : "PENDENTE");
 
+            const cartao = document.createElement("article");
+            cartao.className = "challenge-card";
+
             cartao.innerHTML = `
-                <small>NÍVEL · ${rotuloDificuldade(missao.dificuldade)} · ${missao.modelo} · +${missao.pontos} PTS</small>
+                <small>${missao.modelo} · ${rotuloDificuldade(missao.dificuldade)} · até +${missao.pontos} PTS</small>
                 <h3>${safe(missao.titulo)}</h3>
                 <p>${safe(missao.local || "")}</p>
                 <span class="challenge-state ${estado.concluida ? "done" : ""}">${estadoTexto}</span>
@@ -1045,21 +1202,29 @@
         });
     }
 
-    function renderEtapasAb(id_missao, detalhe) {
-        const estado = estadoDesafios[id_missao] || { dicasLiberadas: 0, dicas: [] };
+    function renderEtapaA(id_missao, detalhe) {
+        // Uma única linha compacta de metadados — modelo, natureza,
+        // dificuldade e pontuação aparecem uma única vez, aqui.
+        const meta = [
+            detalhe.modelo,
+            detalhe.natureza === "reconstrucao" ? "Reconstrução educacional" : "Documento histórico",
+            rotuloDificuldade(detalhe.dificuldade),
+            `até +${detalhe.pontos} pontos`,
+        ].join(" · ");
 
         $("#challengeStageA").innerHTML = `
-            <div class="challenge-meta-line">
-                <span class="tag">${detalhe.modelo}</span>
-                <span class="tag recon-tag">${detalhe.natureza === "reconstrucao" ? "RECONSTRUÇÃO EDUCACIONAL" : "DOCUMENTO HISTÓRICO"}</span>
-                <span class="tag">${rotuloDificuldade(detalhe.dificuldade)} · até +${detalhe.pontos} PTS</span>
+            <p class="challenge-meta-linha">${meta}</p>
+            <div class="cenario-card">
+                <div class="cenario-titulo">CENÁRIO HISTÓRICO</div>
+                <dl class="cenario-dados">
+                    <div><dt>Onde</dt><dd>${safe(detalhe.local)}</dd></div>
+                    <div><dt>Região</dt><dd>${safe(detalhe.pais_regiao)}</dd></div>
+                    <div><dt>Quando</dt><dd>${safe(detalhe.periodo)}</dd></div>
+                </dl>
+                <p class="cenario-resumo">${safe(detalhe.intro)}</p>
             </div>
-            <p class="challenge-local"><b>Onde:</b> ${safe(detalhe.local)}<br>
-            <b>Região/países:</b> ${safe(detalhe.pais_regiao)}<br>
-            <b>Quando:</b> ${safe(detalhe.periodo)}</p>
-            <p>${safe(detalhe.intro)}</p>
             <details class="challenge-details">
-                <summary>Contexto histórico, participantes e fontes</summary>
+                <summary>Conheça o contexto histórico</summary>
                 <p>${safe(detalhe.contexto)}</p>
                 <p><b>Quem participava:</b> ${safe(detalhe.quem_participava)}</p>
                 <p><small>${safe(detalhe.fato_verificado)}</small></p>
@@ -1070,32 +1235,60 @@
             <div class="actions"><button class="btn primary" id="goStageB">Preparar a missão →</button></div>
         `;
 
+        $("#goStageB").addEventListener("click", () => mostrarEtapa(2));
+    }
+
+    function renderEtapaB(id_missao, detalhe) {
+        const estado = estadoDesafios[id_missao] || (estadoDesafios[id_missao] = { dicasLiberadas: 0, dicas: [] });
+
         $("#challengeStageB").innerHTML = `
-            <div class="panel-title"><div><div class="eyebrow">ETAPA B</div><h3>Preparação</h3></div></div>
+            <p class="challenge-objetivo"><b>Objetivo:</b> ${safe(detalhe.objetivo)}</p>
             <ol class="edu-list">
-                <li><b>O que você recebe:</b> a mensagem cifrada (abaixo) e, nas dicas, tudo o que é necessário.</li>
+                <li><b>O que você recebe:</b> a mensagem cifrada (abaixo) e, nas pistas, tudo o que for necessário.</li>
                 <li><b>O que você faz:</b> configurar a máquina na tela "Máquina & cifra", digitar a mensagem e copiar a saída.</li>
                 <li><b>O que falta descobrir:</b> depende do modo escolhido no próximo passo.</li>
-                <li><b>Precisa de ajuda?</b> Use o botão de dicas — a qualquer momento, sem penalização.</li>
+                <li><b>Precisa de ajuda?</b> Use as pistas — a qualquer momento, sem penalização.</li>
             </ol>
             <div class="challenge-cipher">${safe(detalhe.mensagem_cifrada)}</div>
             <div class="field"><label>Mensagem cifrada <small>copie para a máquina</small></label><input readonly value="${safe(detalhe.mensagem_cifrada)}" id="challengeCopySource"></div>
             <div class="modo-cards">
                 ${Object.keys(MODOS_INFO).map((chave) => `
-                    <button type="button" class="modo-card" data-modo="${chave}">
+                    <button type="button" class="modo-card${estado.modoSelecionado === chave ? " selecionado" : ""}" data-modo="${chave}">
                         <b>${MODOS_INFO[chave].rotulo}</b>
                         <small>${MODOS_INFO[chave].descricao}</small>
                         <em>Pontuação: ${chave === "guiado" ? "50%" : chave === "investigacao" ? "75%" : "100%"}</em>
                     </button>
                 `).join("")}
             </div>
+            <div class="actions">
+                <button class="btn outline" id="backStageA">← Voltar à missão</button>
+                <button class="btn primary" id="iniciarResolucao" ${estado.modoSelecionado ? "" : "disabled"}>Iniciar resolução →</button>
+            </div>
         `;
 
-        $("#challengeStageB").classList.remove("hidden");
+        $$("#challengeStageB .modo-card").forEach((cartao) => {
+            cartao.addEventListener("click", () => {
+                $$("#challengeStageB .modo-card").forEach((outro) => outro.classList.remove("selecionado"));
+                cartao.classList.add("selecionado");
+                estado.modoSelecionado = cartao.dataset.modo;
+                $("#iniciarResolucao").disabled = false;
+            });
+        });
+
+        $("#backStageA").addEventListener("click", () => mostrarEtapa(1));
+
+        $("#iniciarResolucao").addEventListener("click", () => {
+            if (!estado.modoSelecionado) {
+                return;
+            }
+            renderEtapaC(id_missao, detalhe, estado.modoSelecionado);
+            mostrarEtapa(3);
+        });
     }
 
     function renderEtapaC(id_missao, detalhe, modo) {
         const painel = $("#challengeStageC");
+        const limiteDicas = modo === "especialista" ? 1 : detalhe.total_dicas;
 
         painel.innerHTML = `
             <div class="panel-title"><div><div class="eyebrow">ETAPA C · ${rotuloModo(modo).toUpperCase()}</div><h3>Resolução</h3></div></div>
@@ -1106,9 +1299,9 @@
         if (modo === "guiado") {
             instrucoes.innerHTML = `<b>Modo guiado:</b> a máquina será preparada automaticamente com a configuração desta missão. Depois, digite a mensagem cifrada e copie a saída.`;
         } else if (modo === "investigacao") {
-            instrucoes.innerHTML = `<b>Modo investigação:</b> configure a máquina você mesmo. Cada dica ensina o próximo passo — use o botão abaixo quantas vezes precisar.`;
+            instrucoes.innerHTML = `<b>Modo investigação:</b> configure a máquina você mesmo. Cada pista é um relato da equipe — use o botão abaixo quantas vezes precisar.`;
         } else {
-            instrucoes.innerHTML = `<b>Modo especialista:</b> configure manualmente com base no que aprendeu. Dicas mínimas; a <button class="link" data-go="cryptanalysis">criptoanálise</button> é opcional.`;
+            instrucoes.innerHTML = `<b>Modo especialista:</b> configure manualmente com base no que aprendeu. Uma única orientação; a <button class="link" data-go="cryptanalysis">criptoanálise</button> é opcional.`;
         }
 
         painel.append(instrucoes);
@@ -1130,7 +1323,9 @@
             botaoDica.type = "button";
             botaoDica.className = "btn outline";
             botaoDica.id = "challengeHintC";
-            botaoDica.textContent = "Revelar dica 1/" + detalhe.total_dicas;
+            botaoDica.textContent = modo === "especialista"
+                ? "Pedir orientação ao analista"
+                : "Revelar pista 1/" + detalhe.total_dicas;
             painel.append(botaoDica);
 
             const conteinerDicas = document.createElement("div");
@@ -1142,16 +1337,19 @@
         const area = document.createElement("div");
         area.innerHTML = `
             <div class="field"><label for="challengeAnswer">Texto que você leu na máquina</label><input id="challengeAnswer" placeholder="Cole aqui o texto decifrado..."></div>
-            <div class="actions"><button class="btn primary" id="submitChallenge">Verificar com o motor ↗</button></div>
+            <div class="actions">
+                <button class="btn outline" id="backStageB">← Voltar à preparação</button>
+                <button class="btn primary" id="submitChallenge">Verificar com o motor ↗</button>
+            </div>
             <p id="challengeFeedback" class="feedback" aria-live="polite"></p>
         `;
         painel.append(area);
 
         if (modo === "guiado") {
             $("#aplicarConfigGuiada").addEventListener("click", async () => {
-                botaoPrepararEstado(true);
+                $("#aplicarConfigGuiada").disabled = true;
                 try {
-                    const resposta = await fetch(`${API_BASE}/api/desafios/${id_missao}/configuracao-guiada`);
+                    const resposta = await apiFetch(`${API_BASE}/api/desafios/${id_missao}/configuracao-guiada`);
                     const config = await resposta.json();
                     if (!resposta.ok) {
                         throw new Error(config.erro || "Não foi possível preparar a máquina.");
@@ -1161,27 +1359,23 @@
                 } catch (erro) {
                     toast(erro.message + " Verifique a API Python.");
                 } finally {
-                    botaoPrepararEstado(false);
+                    $("#aplicarConfigGuiada").disabled = false;
                 }
             });
         } else {
-            $("#challengeHintC").addEventListener("click", () => liberarDica(id_missao));
+            $("#challengeHintC").addEventListener("click", () => liberarDica(id_missao, limiteDicas));
         }
 
         $("#submitChallenge").addEventListener("click", () => verificarRespostaMissao(id_missao, modo));
-
-        painel.classList.remove("hidden");
-
-        function botaoPrepararEstado(estado) {
-            $("#aplicarConfigGuiada").disabled = estado;
-        }
+        $("#backStageB").addEventListener("click", () => mostrarEtapa(2));
     }
 
-    async function liberarDica(id_missao) {
+    async function liberarDica(id_missao, limite) {
         const estado = estadoDesafios[id_missao] || (estadoDesafios[id_missao] = { dicasLiberadas: 0, dicas: [] });
         const missao = challenges[id_missao];
+        const maximo = limite === undefined || limite === null ? missao.total_dicas : Math.min(limite, missao.total_dicas);
 
-        if (estado.dicasLiberadas >= missao.total_dicas) {
+        if (estado.dicasLiberadas >= maximo) {
             return;
         }
 
@@ -1191,7 +1385,7 @@
         }
 
         try {
-            const resposta = await fetch(`${API_BASE}/api/desafios/${id_missao}/dica`, {
+            const resposta = await apiFetch(`${API_BASE}/api/desafios/${id_missao}/dica`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ nivel: estado.dicasLiberadas + 1 })
@@ -1199,7 +1393,7 @@
             const dados = await resposta.json();
 
             if (!resposta.ok) {
-                throw new Error(dados.erro || "Não foi possível obter a dica.");
+                throw new Error(dados.erro || "Não foi possível obter a pista.");
             }
 
             estado.dicas = dados.dicas;
@@ -1210,16 +1404,21 @@
             estado.dicas.forEach((dica, indice) => {
                 const linha = document.createElement("p");
                 linha.className = "hint";
-                linha.textContent = `Dica ${indice + 1}${indice === estado.dicas.length - 1 && indice >= 2 ? " (última)" : ""}: ${dica}`;
+                const origem = document.createElement("small");
+                origem.className = "hint-origem";
+                origem.textContent = `PISTA ${indice + 1} DE ${maximo}`;
+                const texto = document.createElement("span");
+                texto.textContent = dica;
+                linha.append(origem, texto);
                 conteiner.append(linha);
             });
 
-            const esgotadas = estado.dicasLiberadas >= missao.total_dicas;
+            const esgotadas = estado.dicasLiberadas >= maximo;
             if (botao) {
                 botao.disabled = esgotadas;
                 botao.textContent = esgotadas
-                    ? "Sem mais dicas"
-                    : `Revelar dica ${estado.dicasLiberadas + 1}/${missao.total_dicas}`;
+                    ? (maximo < missao.total_dicas ? "Orientação única no modo especialista" : "Sem mais pistas")
+                    : `Revelar pista ${estado.dicasLiberadas + 1}/${maximo}`;
             }
             renderCatalogoDesafios();
         } catch (erro) {
@@ -1271,7 +1470,7 @@
         feedback.textContent = "Verificando com o motor Python...";
 
         try {
-            const respostaApi = await fetch(`${API_BASE}/api/desafios/${id_missao}/verificar`, {
+            const respostaApi = await apiFetch(`${API_BASE}/api/desafios/${id_missao}/verificar`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ resposta: resposta, modo: modo })
@@ -1282,9 +1481,8 @@
                 throw new Error(dados.erro || "A API recusou a verificação.");
             }
 
-            attempts++;
-
             if (!dados.correto) {
+                attempts++;
                 feedback.textContent = dados.feedback;
                 return;
             }
@@ -1299,8 +1497,7 @@
     }
 
     async function renderConclusao(id_missao, dados, modo) {
-        $("#challengeStageC").classList.add("hidden");
-        $("#challengeStageB").classList.add("hidden");
+        mostrarEtapa(4);
         const painel = $("#challengeStageD");
 
         const conquista = dados.nova_conquista;
@@ -1330,15 +1527,13 @@
                     <p>${conquista ? safe(conquista.descricao) : "A conquista desta missão já constava do seu progresso."}</p>
                 </div>
             </div>
-            <h4>Conheça o cenário histórico</h4>
+            <h4>Galeria do cenário histórico</h4>
             <div id="challengeGallery" class="galeria-grid" aria-live="polite"><p class="muted">Carregando galeria...</p></div>
             <div class="actions">
                 <button class="btn primary" id="nextChallengeBtn">Próxima missão →</button>
                 <button class="btn outline" id="reviewChallengeBtn">Rever a missão</button>
             </div>
         `;
-
-        painel.classList.remove("hidden");
 
         await carregarGaleria(id_missao);
         await carregarProgresso();
@@ -1368,7 +1563,7 @@
         const conteiner = $("#challengeGallery");
 
         try {
-            const resposta = await fetch(`${API_BASE}/api/desafios/${id_missao}/galeria`);
+            const resposta = await apiFetch(`${API_BASE}/api/desafios/${id_missao}/galeria`);
             const dados = await resposta.json();
 
             if (!resposta.ok) {
@@ -1440,36 +1635,21 @@
 
         const estado = estadoDesafios[id] || (estadoDesafios[id] = { dicasLiberadas: 0, dicas: [] });
 
-        // Detalhe completo da Etapa A vem da API (contexto, fontes, etc.).
-        fetch(`${API_BASE}/api/desafios/${id}`)
+        // Detalhe completo da Etapa A vem da API (contexto, fontes etc.).
+        apiFetch(`${API_BASE}/api/desafios/${id}`)
             .then((resposta) => resposta.json())
             .then((detalhe) => {
                 $("#challengeTitle").textContent = detalhe.titulo;
-                $("#challengeDificuldade").textContent =
-                    `MISSÃO · ${rotuloDificuldade(detalhe.dificuldade).toUpperCase()} · CONQUISTA: ${detalhe.conquista.nome.toUpperCase()}`;
-                $("#challengeModelTag").textContent = detalhe.modelo;
-                $("#challengeNatureTag").textContent =
-                    detalhe.natureza === "reconstrucao" ? "RECONSTRUÇÃO EDUCACIONAL" : "DOCUMENTO HISTÓRICO";
 
-                renderEtapasAb(id, detalhe);
+                renderEtapaA(id, detalhe);
+                renderEtapaB(id, detalhe);
 
-                ["#challengeStageC", "#challengeStageD"].forEach((seletor) => {
-                    $(seletor).classList.add("hidden");
-                    $(seletor).innerHTML = "";
-                });
-                $("#challengeStageA").classList.remove("hidden");
+                $("#challengeStageC").innerHTML = "";
+                $("#challengeStageD").innerHTML = "";
 
-                $("#goStageB").addEventListener("click", () => {
-                    $("#challengeStageA").classList.add("hidden");
-                    $("#challengeStageB").classList.remove("hidden");
-                });
-
-                $$("#challengeStageB .modo-card").forEach((cartao) => {
-                    cartao.addEventListener("click", () => {
-                        $("#challengeStageB").classList.add("hidden");
-                        renderEtapaC(id, detalhe, cartao.dataset.modo);
-                    });
-                });
+                // Estado inicial: SOMENTE a Etapa A fica visível. A Etapa B
+                // só aparece depois do botão "Preparar a missão".
+                mostrarEtapa(1);
 
                 $("#challengeWorkspace").classList.remove("hidden");
                 $("#challengeWorkspace").scrollIntoView({ behavior: "smooth", block: "start" });
@@ -1497,7 +1677,7 @@
         const aviso = $("#challengeCatalogStatus");
 
         try {
-            const resposta = await fetch(`${API_BASE}/api/desafios`);
+            const resposta = await apiFetch(`${API_BASE}/api/desafios`);
             const dados = await resposta.json();
 
             if (!resposta.ok) {
@@ -1639,7 +1819,7 @@
             : "—";
 
         $("#achievementCount").textContent =
-            String(1 + (completed > 0 ? 1 : 0)).padStart(2, "0");
+            String(conquistasDesbloqueadas.length).padStart(2, "0");
 
         const nomes = [
             ["dashboard", "Visão geral"],
@@ -1687,7 +1867,7 @@
         }
 
         try {
-            const resposta = await fetch(`${API_BASE}/api/desafios/conquistas`);
+            const resposta = await apiFetch(`${API_BASE}/api/desafios/conquistas`);
             const dados = await resposta.json();
             const catalogo = (dados.conquistas || []);
 
@@ -1702,8 +1882,12 @@
                 const cartao = document.createElement("div");
                 cartao.className = "achievement " + (desbloqueada ? "unlocked" : "locked");
 
+                const visualConquista = desbloqueada && conquista.imagem
+                    ? `<img class="achievement-imagem" src="${safe(conquista.imagem)}" alt="" loading="lazy">`
+                    : `<span class="achievement-icone">${safe(conquista.icone)}</span>`;
+
                 cartao.innerHTML = `
-                    <span class="achievement-icone">${conquista.icone}</span>
+                    ${visualConquista}
                     <div>
                         <b>${safe(conquista.nome)}</b>
                         <p>${safe(conquista.descricao)}</p>
@@ -1712,6 +1896,16 @@
                             : "BLOQUEADA — conclua a missão correspondente"}</small>
                     </div>
                 `;
+
+                const imagemConquista = cartao.querySelector(".achievement-imagem");
+                if (imagemConquista) {
+                    imagemConquista.addEventListener("error", () => {
+                        const fallback = document.createElement("span");
+                        fallback.className = "achievement-icone";
+                        fallback.textContent = conquista.icone || "◇";
+                        imagemConquista.replaceWith(fallback);
+                    }, { once: true });
+                }
 
                 grade.append(cartao);
             });
